@@ -223,6 +223,11 @@ export default function App() {
       return;
     }
 
+    if (!deviceName.trim()) {
+      setError('Please enter a name for this device.');
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     setPairingNotice(null);
@@ -230,7 +235,7 @@ export default function App() {
     const deviceMetadata = buildDeviceMetadata();
     const payload = {
       code: trimmedCode,
-      deviceName: deviceName.trim() || undefined,
+      deviceName: deviceName.trim(),
       deviceMetadata,
       platform: getChildPlatform(),
     };
@@ -492,7 +497,7 @@ export default function App() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Device Name (Optional)</Text>
+              <Text style={styles.inputLabel}>Device Name</Text>
               <TextInput
                 autoCapitalize="words"
                 onChangeText={setDeviceName}

@@ -9,6 +9,8 @@ import Link from "next/link";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SettingsModal } from "@/components/dashboard/settings-modal";
+import { Settings } from "lucide-react";
 
 const routeItems = [
   { id: "overview", label: "Overview", href: "/dashboard" },
@@ -30,6 +32,7 @@ export function DashboardHeader({
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Auto-detect active route from pathname
   const activeRoute = routeItems.find(item => item.href === pathname)?.id ?? "overview";
@@ -120,7 +123,21 @@ export function DashboardHeader({
         >
           Sign out
         </button>
+
+        {/* Settings Trigger */}
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-200/80 bg-white text-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition hover:border-neutral-300 hover:text-neutral-700 dark:border-white/[0.07] dark:bg-neutral-900 dark:hover:border-white/[0.12] dark:hover:text-neutral-200"
+          title="Settings"
+        >
+          <Settings size={15} />
+        </button>
       </div>
+
+      <SettingsModal 
+        isOpen={settingsOpen} 
+        onClose={() => setSettingsOpen(false)} 
+      />
     </header>
   );
 }

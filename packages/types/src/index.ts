@@ -223,7 +223,7 @@ export const verifyPairingCodeInputSchema = z.object({
     new RegExp(`^\\d{${PAIRING_CODE_LENGTH}}$`),
     `Pairing code must be exactly ${PAIRING_CODE_LENGTH} digits.`
   ),
-  deviceName: z.string().min(1).max(120).optional(),
+  deviceName: z.string().min(1).max(120),
   deviceMetadata: childDeviceMetadataSchema.optional(),
   platform: z.enum(["ios", "android", "web"])
 });
@@ -236,19 +236,30 @@ export const createLocationEventInputSchema = z.object({
   source: z.enum(["gps", "manual", "simulated", "unknown"]).default("gps")
 });
 
-export const updateParentSettingsInputSchema = z.object({
-  riskSensitivity: z.number().int().min(1).max(3),
-  alertFrequencySeconds: z.number().int().min(15).max(3600),
-  pushAlertsEnabled: z.boolean(),
-  emailAlertsEnabled: z.boolean()
-});
-
 export const createGeofenceInputSchema = z.object({
   label: z.string().min(1).max(120),
   severity: geofenceSeveritySchema.default("safe"),
   centerLatitude: z.number().min(-90).max(90),
   centerLongitude: z.number().min(-180).max(180),
   radiusMeters: z.number().positive().max(10_000),
+});
+
+export const updateParentProfileInputSchema = z.object({
+  displayName: z.string().min(1).max(120).optional(),
+  phoneNumber: z.string().min(6).max(20).nullable().optional(),
+  timezone: z.string().min(1).max(50).optional(),
+});
+
+export const updateParentSettingsInputSchema = z.object({
+  riskSensitivity: z.number().int().min(1).max(3).optional(),
+  alertFrequencySeconds: z.number().int().min(15).max(3600).optional(),
+  pushAlertsEnabled: z.boolean().optional(),
+  emailAlertsEnabled: z.boolean().optional(),
+});
+
+export const updateChildInputSchema = z.object({
+  displayName: z.string().min(1).max(80).optional(),
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format must be YYYY-MM-DD").nullable().optional(),
 });
 
 export type UserRole = z.infer<typeof userRoleSchema>;
@@ -278,4 +289,6 @@ export type CreatePairingCodeInput = z.infer<typeof createPairingCodeInputSchema
 export type VerifyPairingCodeInput = z.infer<typeof verifyPairingCodeInputSchema>;
 export type CreateLocationEventInput = z.infer<typeof createLocationEventInputSchema>;
 export type CreateGeofenceInput = z.infer<typeof createGeofenceInputSchema>;
+export type UpdateParentProfileInput = z.infer<typeof updateParentProfileInputSchema>;
 export type UpdateParentSettingsInput = z.infer<typeof updateParentSettingsInputSchema>;
+export type UpdateChildInput = z.infer<typeof updateChildInputSchema>;
