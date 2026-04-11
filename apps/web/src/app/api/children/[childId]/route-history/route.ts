@@ -3,6 +3,7 @@ import { and, desc, eq, gte } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 import { getAuthenticatedParentFromSession } from "@/lib/auth/get-authenticated-parent-from-session";
+import { redis } from "@/lib/redis";
 
 type RouteContext = {
   params: Promise<{
@@ -13,6 +14,7 @@ type RouteContext = {
 const DEFAULT_HISTORY_HOURS = 6;
 const MAX_HISTORY_HOURS = 24;
 const MAX_POINTS = 400;
+const CACHE_TTL_SECONDS = 60;
 
 export async function GET(request: NextRequest, context: RouteContext) {
   const authenticatedParent = await getAuthenticatedParentFromSession();
@@ -26,6 +28,22 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const hours = Number.isFinite(rawHours)
     ? Math.min(Math.max(Math.round(rawHours), 1), MAX_HISTORY_HOURS)
     : DEFAULT_HISTORY_HOURS;
+
+  // ─── Redis Cache Check ──────────────────────────────────────────────────────
+  const cacheKey = `gs:route-history:${childId}:${hours}`;
+  
+  try {
+    const cachedData = await redis.get(cacheKey);
+    if (cachedData) {
+      console.log(`[redis] cache hit for ${cacheKey}`);
+      return NextResponse.json(cachedData, { status: 200 });
+    }
+  } catch (redisError) {
+    // Graceful fallback if Redis is down
+    console.warn(`[redis] cache check failed for ${cacheKey}:`, redisError);
+  }
+
+  // ─── Database Query ────────────────────────────────────────────────────────
   const since = new Date(Date.now() - hours * 60 * 60 * 1000);
   const db = getDb();
 
@@ -84,12 +102,20 @@ export async function GET(request: NextRequest, context: RouteContext) {
       recordedAt: row.recordedAt.toISOString(),
     }));
 
-  return NextResponse.json(
-    {
-      childId,
-      hours,
-      points,
-    },
-    { status: 200 },
-  );
+  const responseData = {
+    childId,
+    hours,
+    points,
+  };
+
+  // ─── Redis Cache Populate ──────────────────────────────────────────────────
+  try {
+    // We don't await this to avoid blocking the response
+    void redis.set(cacheKey, responseData, { ex: CACHE_TTL_SECONDS });
+    console.log(`[redis] cache populated for ${cacheKey}`);
+  } catch (redisError) {
+    console.warn(`[redis] failed to set cache for ${cacheKey}:`, redisError);
+  }
+
+  return NextResponse.json(responseData, { status: 200 });
 }

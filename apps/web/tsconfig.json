@@ -10,6 +10,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "types": ["google.maps"],
     "plugins": [
       {
         "name": "next"

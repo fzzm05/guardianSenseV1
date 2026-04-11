@@ -50,7 +50,7 @@ type ParentDashboardProps = {
   parentId: string;
   parentDisplayName: string;
   parentEmail: string;
-  activeRoute?: "overview" | "children" | "activity" | "zones" | "devices";
+  activeRoute?: "overview" | "children" | "zones" | "devices";
   isTelegramLinked: boolean;
   initialSelectedChildId?: string | null;
   children: ChildSummary[];
@@ -230,7 +230,7 @@ export function ParentDashboard({
     <main className="flex h-screen flex-col overflow-hidden bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
 
       {/* Header */}
-      <div className="shrink-0 px-4 py-3 sm:px-5">
+      <div className="shrink-0 px-4 py-3">
         <DashboardHeader
           activeRoute={activeRoute}
           description="Parent command center for live movement, zones, device state, and recent activity."
@@ -249,7 +249,6 @@ export function ParentDashboard({
           <div className="h-4 w-px bg-neutral-200 dark:bg-white/10" />
           <SummaryItem label="Alerts" value={String(dangerCount)} tone={dangerCount > 0 ? "amber" : "neutral"} />
           <div className="h-4 w-px bg-neutral-200 dark:bg-white/10" />
-          <SummaryItem label="Active zones" value={String(activeZonesCount)} tone="neutral" />
           <div className="ml-auto flex items-center gap-1.5">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             <span className="text-[11px] font-medium text-neutral-400 dark:text-neutral-600">Live</span>
@@ -261,7 +260,7 @@ export function ParentDashboard({
       <div className="flex min-h-0 flex-1">
 
         {/* Sidebar */}
-        <aside className="flex w-[300px] shrink-0 flex-col overflow-y-auto border-r border-neutral-200/70 bg-white dark:border-white/[0.06] dark:bg-neutral-900">
+        <aside className="flex w-[300px] shrink-0 flex-col overflow-y-auto border-r border-neutral-200/70 bg-white dark:border-white/[0.06] dark:bg-neutral-950">
 
           {/* Children section */}
           <div className="border-b border-neutral-200/70 p-4 dark:border-white/[0.06]">
@@ -329,7 +328,7 @@ export function ParentDashboard({
                       </div>
                       <div className="mt-2.5 flex flex-wrap gap-1.5">
                         <PresenceTag tone={presenceTone} label={getDevicePresenceLabel(child)} />
-                        <StatusTag status={child.status} />
+                        {presenceTone !== "stale" && <StatusTag status={child.status} />}
                       </div>
                     </button>
                   );
@@ -338,7 +337,8 @@ export function ParentDashboard({
             )}
           </div>
 
-          {/* Route window section */}
+          {/* Route window section — only shown when a child is connected */}
+          {liveChildren.length > 0 && (
           <div className="border-b border-neutral-200/70 p-4 dark:border-white/[0.06]">
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.07em] text-neutral-400 dark:text-neutral-600">
               Route window
@@ -361,11 +361,12 @@ export function ParentDashboard({
               ))}
             </div>
           </div>
-
-          <TelegramAlerts parentId={parentId} initialLinked={isTelegramLinked} />
+          )}
 
           {/* Spacer fills remaining sidebar */}
           <div className="flex-1" />
+
+          <TelegramAlerts parentId={parentId} initialLinked={isTelegramLinked} />
         </aside>
 
         {/* Map */}

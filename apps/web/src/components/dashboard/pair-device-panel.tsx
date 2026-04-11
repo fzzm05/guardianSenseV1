@@ -26,10 +26,7 @@ type PairingCodeResponse = {
 type PairingMode = "new-child" | "existing-child";
 
 function getErrorMessage(error: unknown) {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
+  if (error instanceof Error) return error.message;
   return "Something went wrong.";
 }
 
@@ -50,7 +47,6 @@ export function PairDevicePanel({ idToken, children }: PairDevicePanelProps) {
       if (mode === "new-child" && !childName.trim()) {
         throw new Error("Please enter a child name before creating a pairing code.");
       }
-
       if (mode === "existing-child" && !selectedChildId) {
         throw new Error("Choose a child before generating a re-login code.");
       }
@@ -67,20 +63,17 @@ export function PairDevicePanel({ idToken, children }: PairDevicePanelProps) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${firebaseToken}`
+          Authorization: `Bearer ${firebaseToken}`,
         },
         body: JSON.stringify(
           mode === "existing-child"
             ? { childId: selectedChildId }
-            : { childName: childName.trim() }
-        )
+            : { childName: childName.trim() },
+        ),
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Failed to create pairing code.");
-      }
+      if (!response.ok) throw new Error(data.error ?? "Failed to create pairing code.");
 
       setPairingResult(data satisfies PairingCodeResponse);
     } catch (createError) {
@@ -91,114 +84,140 @@ export function PairDevicePanel({ idToken, children }: PairDevicePanelProps) {
   }
 
   return (
-    <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,28,23,0.96),rgba(7,13,11,0.98))] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.3)]">
-      <div className="space-y-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-300/90">
-          Child Access Approval
-        </p>
-        <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">
-          Add a child device or approve a return to the platform.
-        </h2>
-        <p className="max-w-2xl text-sm leading-7 text-slate-300/75">
-          Use one-time codes both for first-time pairing and for letting an existing child
-          sign back in after logging out or reinstalling the app.
-        </p>
-      </div>
+    <section className="rounded-xl border border-neutral-200/80 bg-white dark:border-white/[0.07] dark:bg-neutral-900">
 
-      <div className="mt-6 flex flex-wrap gap-3">
-        <button
-          className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-            mode === "new-child"
-              ? "border-emerald-300/70 bg-emerald-300 text-slate-950 shadow-[0_12px_30px_rgba(110,231,183,0.25)]"
-              : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/8"
-          }`}
-          onClick={() => setMode("new-child")}
-          type="button"
-        >
-          New child
-        </button>
-        <button
-          className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-            mode === "existing-child"
-              ? "border-emerald-300/70 bg-emerald-300 text-slate-950 shadow-[0_12px_30px_rgba(110,231,183,0.25)]"
-              : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/8"
-          }`}
-          onClick={() => setMode("existing-child")}
-          type="button"
-        >
-          Existing child re-login
-        </button>
-      </div>
-
-      <form className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_220px]" onSubmit={handleCreatePairingCode}>
-        {mode === "new-child" ? (
-          <label className="grid gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-              New child name
-            </span>
-            <input
-              className="w-full rounded-[22px] border border-white/10 bg-black/20 px-4 py-3 text-slate-50 outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50 focus:bg-black/30"
-              onChange={(event) => setChildName(event.target.value)}
-              placeholder="Ashhar"
-              type="text"
-              value={childName}
-            />
-          </label>
-        ) : (
-          <label className="grid gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-              Existing child
-            </span>
-            <select
-              className="w-full rounded-[22px] border border-white/10 bg-black/20 px-4 py-3 text-slate-50 outline-none transition focus:border-emerald-300/50 focus:bg-black/30"
-              onChange={(event) => setSelectedChildId(event.target.value)}
-              value={selectedChildId}
-            >
-              <option value="">
-                {children.length === 0 ? "No children available yet" : "Select a child"}
-              </option>
-              {children.map((child) => (
-                <option key={child.id} value={child.id}>
-                  {child.displayName}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        <button
-          className="rounded-[22px] border border-emerald-300/70 bg-emerald-300 px-5 py-3 font-medium text-slate-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={loading || (mode === "existing-child" && children.length === 0)}
-          type="submit"
-        >
-          {loading
-            ? "Generating..."
-            : mode === "existing-child"
-              ? "Create re-login code"
-              : "Create pairing code"}
-        </button>
-      </form>
-
-      {error ? (
-        <p className="mt-4 rounded-[22px] border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-          {error}
-        </p>
-      ) : null}
-
-      {pairingResult ? (
-        <div className="mt-5 rounded-[24px] border border-emerald-300/25 bg-[linear-gradient(180deg,rgba(110,231,183,0.14),rgba(16,185,129,0.08))] p-5">
-          <p className="text-sm text-emerald-100/90">
-            {pairingResult.mode === "existing-child"
-              ? `Re-login code ${pairingResult.reused ? "reused" : "created"} for ${pairingResult.childName}.`
-              : `Pairing code ${pairingResult.reused ? "reused" : "created"} for ${pairingResult.childName}.`}
-          </p>
-          <p className="mt-3 text-3xl font-semibold tracking-[0.28em] text-white">
-            {pairingResult.code}
-          </p>
-          <p className="mt-2 text-sm text-emerald-100/80">
-            Expires at {new Date(pairingResult.expiresAt).toLocaleString()}.
-          </p>
+      {/* Header */}
+      <div className="border-b border-neutral-100 px-4 py-4 dark:border-white/[0.05]">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-400/10">
+            <svg className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2" />
+              <path d="M12 18h.01" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-[13px] font-semibold text-neutral-900 dark:text-white">
+              Pair a device
+            </p>
+            <p className="text-[11px] text-neutral-400 dark:text-neutral-600">
+              New child or existing re-login
+            </p>
+          </div>
         </div>
-      ) : null}
+      </div>
+
+      {/* Body */}
+      <div className="p-4">
+
+        {/* Mode tabs */}
+        <div className="mb-4 flex gap-1.5 rounded-lg border border-neutral-200/80 bg-neutral-50 p-1 dark:border-white/[0.07] dark:bg-neutral-800/50">
+          {(["new-child", "existing-child"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => { setMode(m); setPairingResult(null); setError(null); }}
+              className={[
+                "flex-1 rounded-md py-1.5 text-[12.5px] font-medium transition-all duration-100",
+                mode === m
+                  ? "bg-white text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_0_0_0.5px_rgba(0,0,0,0.05)] dark:bg-neutral-700 dark:text-white dark:shadow-none"
+                  : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300",
+              ].join(" ")}
+            >
+              {m === "new-child" ? "New child" : "Re-login"}
+            </button>
+          ))}
+        </div>
+
+        {/* Description */}
+        <p className="mb-4 text-[12px] leading-relaxed text-neutral-500 dark:text-neutral-500">
+          {mode === "new-child"
+            ? "Create a one-time pairing code to add a new child's device to your account."
+            : "Generate a re-login code for an existing child who has logged out or reinstalled the app."}
+        </p>
+
+        {/* Form */}
+        <form className="space-y-3" onSubmit={handleCreatePairingCode}>
+          {mode === "new-child" ? (
+            <label className="block">
+              <span className="mb-1.5 block text-[10.5px] font-semibold uppercase tracking-[0.07em] text-neutral-400 dark:text-neutral-600">
+                Child name
+              </span>
+              <input
+                type="text"
+                value={childName}
+                onChange={(e) => setChildName(e.target.value)}
+                placeholder="e.g. Aanya"
+                className="w-full rounded-lg border border-neutral-200/80 bg-white px-3 py-2.5 text-[13px] text-neutral-900 outline-none placeholder:text-neutral-400 transition focus:border-neutral-400 focus:ring-2 focus:ring-neutral-200 dark:border-white/[0.07] dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-600 dark:focus:border-white/20 dark:focus:ring-white/[0.06]"
+              />
+            </label>
+          ) : (
+            <label className="block">
+              <span className="mb-1.5 block text-[10.5px] font-semibold uppercase tracking-[0.07em] text-neutral-400 dark:text-neutral-600">
+                Select child
+              </span>
+              <select
+                value={selectedChildId}
+                onChange={(e) => setSelectedChildId(e.target.value)}
+                className="w-full rounded-lg border border-neutral-200/80 bg-white px-3 py-2.5 text-[13px] text-neutral-900 outline-none transition focus:border-neutral-400 focus:ring-2 focus:ring-neutral-200 dark:border-white/[0.07] dark:bg-neutral-800 dark:text-white dark:focus:border-white/20 dark:focus:ring-white/[0.06]"
+              >
+                <option value="">
+                  {children.length === 0 ? "No children available yet" : "Select a child…"}
+                </option>
+                {children.map((child) => (
+                  <option key={child.id} value={child.id}>
+                    {child.displayName}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || (mode === "existing-child" && children.length === 0)}
+            className="w-full rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[13px] font-medium text-emerald-800 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-500/25 dark:bg-emerald-500/[0.08] dark:text-emerald-300 dark:hover:bg-emerald-500/[0.12]"
+          >
+            {loading
+              ? "Generating…"
+              : mode === "existing-child"
+                ? "Create re-login code"
+                : "Create pairing code"}
+          </button>
+        </form>
+
+        {/* Error */}
+        {error && (
+          <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 dark:border-red-500/25 dark:bg-red-500/[0.08]">
+            <svg className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4M12 16h.01" />
+            </svg>
+            <p className="text-[12px] text-red-700 dark:text-red-300">{error}</p>
+          </div>
+        )}
+
+        {/* Pairing result */}
+        {pairingResult && (
+          <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-500/25 dark:bg-emerald-500/[0.08]">
+            <p className="text-[11.5px] text-emerald-700 dark:text-emerald-400">
+              {pairingResult.mode === "existing-child"
+                ? `Re-login code ${pairingResult.reused ? "reused" : "created"} for ${pairingResult.childName}.`
+                : `Pairing code ${pairingResult.reused ? "reused" : "created"} for ${pairingResult.childName}.`}
+            </p>
+
+            {/* Code display */}
+            <div className="my-3 flex items-center justify-center rounded-lg border border-emerald-200/80 bg-white py-4 dark:border-emerald-500/20 dark:bg-emerald-900/20">
+              <span className="font-mono text-3xl font-semibold tracking-[0.3em] text-neutral-900 dark:text-white">
+                {pairingResult.code}
+              </span>
+            </div>
+
+            <p className="text-[11px] text-emerald-600 dark:text-emerald-500">
+              Expires {new Date(pairingResult.expiresAt).toLocaleString()}
+            </p>
+          </div>
+        )}
+      </div>
     </section>
   );
 }

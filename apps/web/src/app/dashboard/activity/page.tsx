@@ -10,13 +10,14 @@ export default async function ActivityPage() {
       <div className="mx-auto flex max-w-[1560px] flex-col gap-6">
         <DashboardHeader
           activeRoute="activity"
-          description="The parent activity route becomes the shared memory of movement and device transitions before alerts and notifications are added."
+          description="Zone transitions, device events, and push alert history."
           parentDisplayName={data.parentDisplayName}
           parentEmail={data.parentEmail}
-          title="Activity timeline for child movement, zone transitions, and charging changes."
+          title="Activity & Alerts"
         />
 
         <section className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
+          {/* Stats sidebar */}
           <aside className="rounded-[32px] border border-slate-200/60 bg-white/70 p-5 shadow-[0_22px_60px_rgba(0,0,0,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-white/6 dark:shadow-[0_22px_60px_rgba(3,8,13,0.22)]">
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
               Activity Stats
@@ -29,20 +30,16 @@ export default async function ActivityPage() {
             </div>
           </aside>
 
+          {/* Event Journal */}
           <section className="rounded-[32px] border border-slate-200/60 bg-white/70 p-5 shadow-[0_22px_60px_rgba(0,0,0,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-white/6 dark:shadow-[0_22px_60px_rgba(3,8,13,0.22)]">
             <div className="flex items-center justify-between pb-4">
               <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Event journal</h2>
             </div>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-300/80">
-              This route is where zone entries, exits, charging transitions, and future
-              risk-classification events should live as a readable parent-facing timeline.
-            </p>
 
-            <div className="mt-6 grid gap-3">
+            <div className="mt-2 grid gap-3">
               {data.recentEvents.length === 0 ? (
                 <div className="rounded-[24px] border border-dashed border-slate-300 bg-white/50 p-5 text-sm text-slate-500 dark:border-white/10 dark:bg-black/20 dark:text-slate-400">
-                  No activity yet. As live updates arrive, this route becomes the event
-                  journal for the parent platform.
+                  No activity yet. Zone entries, exits, and charging transitions appear here.
                 </div>
               ) : (
                 data.recentEvents.map((event) => (
@@ -75,13 +72,7 @@ export default async function ActivityPage() {
   );
 }
 
-function ActivityMetric({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function ActivityMetric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-100/50 px-4 py-4 dark:border-white/8 dark:bg-black/20">
       <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500 dark:text-slate-500">{label}</p>

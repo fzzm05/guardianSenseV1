@@ -334,140 +334,218 @@ export default function App() {
 
   if (session) {
     return (
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        style={styles.screen}
-      >
-      <View style={styles.container}>
-        <Text style={styles.eyebrow}>GuardianSense</Text>
-        <Text style={styles.title}>Device Paired</Text>
-        <Text style={styles.description}>
-          This device is now enrolled as a child device and ready for adaptive
-          foreground location syncing.
-        </Text>
+      <View style={styles.screen}>
+        <StatusBar style="light" />
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          style={styles.screen}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.container}>
+            {/* Logo bar */}
+            <View style={styles.header}>
+              <View style={styles.logoContainer}>
+                <View style={styles.logoIcon}>
+                  <Text style={styles.logoIconText}>G</Text>
+                </View>
+                <Text style={styles.eyebrow}>GuardianSense</Text>
+              </View>
+              <View style={styles.badge}>
+                <View style={[styles.badgeDot, { backgroundColor: '#10b981' }]} />
+                <Text style={styles.badgeText}>Tracking active</Text>
+              </View>
+            </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>Child</Text>
-          <Text style={styles.cardValue}>{session.childName}</Text>
-          <Text style={styles.cardMeta}>Child ID: {session.childId}</Text>
-          <Text style={styles.cardMeta}>Device ID: {session.deviceId}</Text>
-          <Text style={styles.cardMeta}>Platform: {session.platform}</Text>
-          <Text style={styles.cardMeta}>
-            Location permission: {locationPermission}
-          </Text>
-          <Text style={styles.cardMeta}>App state: {appState}</Text>
-        </View>
+            <View style={styles.heroSection}>
+              <Text style={styles.title}>Device Paired</Text>
+              <Text style={styles.description}>
+                This device is enrolled and reporting location data securely to your parent dashboard.
+              </Text>
+            </View>
 
-        <Pressable onPress={handleEnableLocation} style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Enable location</Text>
-        </Pressable>
+            {/* Info Card */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Identity</Text>
+              </View>
+              <View style={styles.cardContent}>
+                <InfoRow label="Child Name" value={session.childName} highlight />
+                <InfoRow label="Platform" value={session.platform} />
+                <View style={styles.divider} />
+                <InfoRow label="Child ID" value={session.childId} mono />
+                <InfoRow label="Device ID" value={session.deviceId} mono />
+              </View>
+            </View>
 
-        {!Device.isDevice ? (
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>Emulator Fallback Location</Text>
-            <Text style={styles.cardMeta}>
-              Use these coordinates if the emulator still cannot provide a live location fix.
-            </Text>
-            <View style={styles.form}>
-              <TextInput
-                keyboardType="decimal-pad"
-                onChangeText={setManualLatitude}
-                placeholder="Latitude"
-                placeholderTextColor="#6c819d"
-                style={styles.input}
-                value={manualLatitude}
-              />
-              <TextInput
-                keyboardType="decimal-pad"
-                onChangeText={setManualLongitude}
-                placeholder="Longitude"
-                placeholderTextColor="#6c819d"
-                style={styles.input}
-                value={manualLongitude}
-              />
+            {/* Status Card */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Real-time Status</Text>
+              </View>
+              <View style={styles.cardContent}>
+                <InfoRow label="App State" value={appState.charAt(0).toUpperCase() + appState.slice(1)} />
+                <InfoRow 
+                  label="Permissions" 
+                  value={locationPermission === 'granted' ? 'Enabled' : 'Action Required'} 
+                  valueColor={locationPermission === 'granted' ? '#10b981' : '#f43f5e'}
+                />
+              </View>
+            </View>
+
+            {/* Controls */}
+            <View style={styles.controls}>
+              {locationPermission !== 'granted' && (
+                <Pressable onPress={handleEnableLocation} style={styles.primaryButton}>
+                  <Text style={styles.primaryButtonText}>Enable location</Text>
+                </Pressable>
+              )}
+
+              <Pressable
+                disabled={sendingLocation}
+                onPress={handleSendCurrentLocation}
+                style={[styles.actionButton, sendingLocation && styles.disabledButton]}
+              >
+                <Text style={styles.actionButtonText}>
+                  {sendingLocation ? 'Syncing...' : 'Sync position now'}
+                </Text>
+              </Pressable>
+
+              {!Device.isDevice ? (
+                <View style={styles.emulatorPanel}>
+                  <Text style={styles.cardLabel}>Emulator Debug</Text>
+                  <View style={styles.formRow}>
+                    <TextInput
+                      keyboardType="decimal-pad"
+                      onChangeText={setManualLatitude}
+                      placeholder="Lat"
+                      placeholderTextColor="#525252"
+                      style={styles.smallInput}
+                      value={manualLatitude}
+                    />
+                    <TextInput
+                      keyboardType="decimal-pad"
+                      onChangeText={setManualLongitude}
+                      placeholder="Long"
+                      placeholderTextColor="#525252"
+                      style={styles.smallInput}
+                      value={manualLongitude}
+                    />
+                  </View>
+                </View>
+              ) : null}
+
+              <Pressable onPress={handleReset} style={styles.resetButton}>
+                <Text style={styles.resetButtonText}>Reset pairing</Text>
+              </Pressable>
+            </View>
+
+            {/* Footer status logs */}
+            <View style={styles.statusLog}>
+              {autoSyncStatus ? <Text style={styles.logText}>{autoSyncStatus}</Text> : null}
+              {locationStatus ? <Text style={styles.logText}>{locationStatus}</Text> : null}
+              {error ? <Text style={[styles.logText, { color: '#f43f5e' }]}>{error}</Text> : null}
             </View>
           </View>
-        ) : null}
-
-        <Pressable
-          disabled={sendingLocation}
-          onPress={handleSendCurrentLocation}
-          style={[styles.primaryButton, sendingLocation && styles.disabledButton]}
-        >
-          <Text style={styles.primaryButtonText}>
-            {sendingLocation ? 'Sending location...' : 'Send current location'}
-          </Text>
-        </Pressable>
-
-        <Pressable onPress={handleReset} style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>Reset pairing</Text>
-        </Pressable>
-
-        {autoSyncStatus ? (
-          <Text style={styles.statusText}>{autoSyncStatus}</Text>
-        ) : null}
-        {locationStatus ? (
-          <Text style={styles.statusText}>{locationStatus}</Text>
-        ) : null}
-        {pairingNotice ? (
-          <Text style={styles.statusText}>{pairingNotice}</Text>
-        ) : null}
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        <StatusBar style="light" />
+        </ScrollView>
       </View>
-      </ScrollView>
     );
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.scrollContent}
-      style={styles.screen}
-    >
-    <View style={styles.container}>
-      <Text style={styles.eyebrow}>GuardianSense</Text>
-      <Text style={styles.title}>Pair This Device</Text>
-      <Text style={styles.description}>
-        Enter the pairing code from the parent dashboard to register this phone
-        as the child device.
-      </Text>
-
-      <View style={styles.form}>
-        <TextInput
-          autoCapitalize="none"
-          maxLength={PAIRING_CODE_LENGTH}
-          keyboardType="number-pad"
-          onChangeText={setPairingCode}
-          placeholder={`${PAIRING_CODE_LENGTH}-digit pairing code`}
-          placeholderTextColor="#6c819d"
-          style={styles.input}
-          value={pairingCode}
-        />
-
-        <TextInput
-          autoCapitalize="words"
-          onChangeText={setDeviceName}
-          placeholder="Device name (optional)"
-          placeholderTextColor="#6c819d"
-          style={styles.input}
-          value={deviceName}
-        />
-
-        <Pressable
-          disabled={submitting}
-          onPress={handleVerifyPairingCode}
-          style={[styles.primaryButton, submitting && styles.disabledButton]}
-        >
-          <Text style={styles.primaryButtonText}>
-            {submitting ? 'Verifying...' : 'Verify pairing code'}
-          </Text>
-        </Pressable>
-      </View>
-
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+    <View style={styles.screen}>
       <StatusBar style="light" />
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        style={styles.screen}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <View style={styles.logoIcon}>
+                <Text style={styles.logoIconText}>G</Text>
+              </View>
+              <Text style={styles.eyebrow}>GuardianSense</Text>
+            </View>
+          </View>
+
+          <View style={styles.heroSection}>
+            <Text style={styles.title}>Welcome</Text>
+            <Text style={styles.description}>
+              Enter the pairing code from the parent dashboard to register this device.
+            </Text>
+          </View>
+
+          <View style={styles.form}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Pairing Code</Text>
+              <TextInput
+                autoCapitalize="none"
+                maxLength={PAIRING_CODE_LENGTH}
+                keyboardType="number-pad"
+                onChangeText={setPairingCode}
+                placeholder="000000"
+                placeholderTextColor="#525252"
+                style={styles.mainInput}
+                value={pairingCode}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Device Name (Optional)</Text>
+              <TextInput
+                autoCapitalize="words"
+                onChangeText={setDeviceName}
+                placeholder="e.g. Rahul's iPhone"
+                placeholderTextColor="#525252"
+                style={styles.mainInput}
+                value={deviceName}
+              />
+            </View>
+
+            <Pressable
+              disabled={submitting}
+              onPress={handleVerifyPairingCode}
+              style={[styles.primaryButton, submitting && styles.disabledButton]}
+            >
+              <Text style={styles.primaryButtonText}>
+                {submitting ? 'Verifying...' : 'Register Device'}
+              </Text>
+            </Pressable>
+          </View>
+
+          {error ? (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorBannerText}>{error}</Text>
+            </View>
+          ) : null}
+        </View>
+      </ScrollView>
     </View>
-    </ScrollView>
+  );
+}
+
+// ─── Helper Components ────────────────────────────────────────────────────────
+
+function InfoRow({ label, value, highlight, mono, valueColor }: { 
+  label: string; 
+  value: string; 
+  highlight?: boolean;
+  mono?: boolean;
+  valueColor?: string;
+}) {
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoRowLabel}>{label}</Text>
+      <Text style={[
+        styles.infoRowValue, 
+        highlight && { color: '#f5f5f5', fontWeight: '600' },
+        mono && { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', fontSize: 13 },
+        valueColor ? { color: valueColor } : null
+      ]}>
+        {value}
+      </Text>
+    </View>
   );
 }
 
@@ -817,141 +895,261 @@ function buildLocationUnavailableMessage(
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: '#081120',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    paddingHorizontal: 24,
-  },
-  loadingText: {
-    color: '#c7d5ea',
-    fontSize: 16,
-  },
-  container: {
-    backgroundColor: '#081120',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-    minHeight: '100%',
-    width: '100%',
-  },
   screen: {
     flex: 1,
-    backgroundColor: '#081120',
+    backgroundColor: '#0a0a0a',
   },
   scrollContent: {
     flexGrow: 1,
   },
+  container: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+  },
+  loadingText: {
+    color: '#737373',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 40,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  logoIcon: {
+    width: 28,
+    height: 28,
+    backgroundColor: '#10b981',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoIconText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
   eyebrow: {
-    color: '#8fb4ff',
+    color: '#f5f5f5',
     fontSize: 14,
     fontWeight: '600',
-    letterSpacing: 1.2,
-    marginBottom: 12,
-    textTransform: 'uppercase',
+    letterSpacing: -0.2,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#10b98115',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 100,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#10b98125',
+  },
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  badgeText: {
+    color: '#10b981',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  heroSection: {
+    marginBottom: 32,
   },
   title: {
-    color: '#f8fbff',
-    fontSize: 36,
+    color: '#f5f5f5',
+    fontSize: 32,
     fontWeight: '700',
-    marginBottom: 12,
+    letterSpacing: -0.8,
+    marginBottom: 8,
   },
   description: {
-    color: '#c7d5ea',
+    color: '#737373',
     fontSize: 16,
     lineHeight: 24,
-    maxWidth: 340,
-  },
-  form: {
-    width: '100%',
-    gap: 12,
-    marginTop: 28,
-  },
-  input: {
-    width: '100%',
-    backgroundColor: '#0f1b30',
-    borderColor: '#23344e',
-    borderWidth: 1,
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    color: '#f8fbff',
-    fontSize: 16,
-  },
-  primaryButton: {
-    marginTop: 4,
-    backgroundColor: '#8fb4ff',
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    width: '100%',
-  },
-  primaryButtonText: {
-    color: '#081120',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  secondaryButton: {
-    marginTop: 16,
-    borderColor: '#23344e',
-    borderRadius: 18,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    width: '100%',
-  },
-  secondaryButtonText: {
-    color: '#c7d5ea',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  disabledButton: {
-    opacity: 0.6,
+    fontWeight: '400',
   },
   card: {
-    width: '100%',
-    backgroundColor: '#0f1b30',
-    borderColor: '#23344e',
+    backgroundColor: '#141414',
+    borderRadius: 12,
     borderWidth: 1,
-    borderRadius: 22,
-    padding: 18,
-    marginTop: 28,
-    gap: 6,
+    borderColor: '#262626',
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  cardHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#262626',
+    backgroundColor: '#1a1a1a',
+  },
+  cardTitle: {
+    color: '#737373',
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  cardContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+  },
+  infoRowLabel: {
+    color: '#737373',
+    fontSize: 13,
+  },
+  infoRowValue: {
+    color: '#a3a3a3',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#262626',
+    marginVertical: 4,
+  },
+  controls: {
+    marginTop: 16,
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: '#10b981',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButtonText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  actionButton: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#262626',
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonText: {
+    color: '#f5f5f5',
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  resetButton: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  resetButtonText: {
+    color: '#737373',
+    fontSize: 13,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  form: {
+    gap: 20,
+    marginTop: 8,
+  },
+  inputGroup: {
+    gap: 8,
+  },
+  inputLabel: {
+    color: '#737373',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  mainInput: {
+    backgroundColor: '#141414',
+    borderWidth: 1,
+    borderColor: '#262626',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    color: '#f5f5f5',
+    fontSize: 16,
+  },
+  errorBanner: {
+    marginTop: 24,
+    backgroundColor: '#ef444410',
+    borderWidth: 1,
+    borderColor: '#ef444430',
+    borderRadius: 12,
+    padding: 16,
+  },
+  errorBannerText: {
+    color: '#f87171',
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  statusLog: {
+    marginTop: 32,
+    gap: 8,
+  },
+  logText: {
+    color: '#525252',
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  emulatorPanel: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#262626',
   },
   cardLabel: {
-    color: '#8fb4ff',
-    fontSize: 13,
+    color: '#737373',
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.8,
     textTransform: 'uppercase',
+    marginBottom: 12,
   },
-  cardValue: {
-    color: '#f8fbff',
-    fontSize: 24,
-    fontWeight: '700',
+  formRow: {
+    flexDirection: 'row',
+    gap: 10,
   },
-  cardMeta: {
-    color: '#c7d5ea',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  errorText: {
-    marginTop: 18,
-    color: '#ffb1bd',
-    fontSize: 14,
-    lineHeight: 20,
-    maxWidth: 340,
-  },
-  statusText: {
-    marginTop: 18,
-    color: '#9fd7b8',
-    fontSize: 14,
-    lineHeight: 20,
-    maxWidth: 340,
+  smallInput: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+    borderWidth: 1,
+    borderColor: '#262626',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    color: '#f5f5f5',
+    fontSize: 13,
   },
 });

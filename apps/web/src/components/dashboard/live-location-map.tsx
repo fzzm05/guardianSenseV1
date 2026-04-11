@@ -144,8 +144,8 @@ export function LiveLocationMap({
       if (!containerRef.current) return;
 
       const map = new Map(containerRef.current, {
-        center: { lat: 23.2599, lng: 77.4126 },
-        zoom: 13,
+        center: { lat: 20, lng: 0 },
+        zoom: 2,
         disableDefaultUI: true,
         backgroundColor: resolvedTheme === "dark" ? "#0d1117" : "#f6f8fa",
         styles: resolvedTheme === "dark" ? DARK_MAP_STYLE : LIGHT_MAP_STYLE,
@@ -230,7 +230,7 @@ export function LiveLocationMap({
     <div className="flex h-full flex-col bg-neutral-50 dark:bg-neutral-950">
 
       {/* Top bar */}
-      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-neutral-200/70 bg-white px-4 py-2.5 dark:border-white/[0.06] dark:bg-neutral-900">
+      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-neutral-200/70 bg-white px-4 py-2.5 dark:border-white/[0.06] dark:bg-neutral-950">
         <div className="flex items-center gap-2">
           {/* Map pin icon */}
           <svg className="h-3.5 w-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
@@ -316,18 +316,19 @@ export function LiveLocationMap({
             </>
           ) : (
             <p className="text-[12px] leading-relaxed text-neutral-400 dark:text-neutral-600">
-              Select a child from the roster to inspect live movement.
+              Pair with a child from the GuardianSense mobile app to start tracking their live location here.
             </p>
           )}
         </div>
 
-        {/* Route history card — bottom left */}
+        {/* Route history card — bottom left, only when children are connected */}
+        {children.length > 0 && (
         <div className="absolute bottom-3 left-3 z-10 w-52 rounded-xl border border-neutral-200/80 bg-white/95 p-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] backdrop-blur-sm dark:border-white/[0.08] dark:bg-neutral-900/95">
           <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.07em] text-neutral-400 dark:text-neutral-600">
             Route history
           </p>
           <p className="text-[11.5px] leading-relaxed text-neutral-500 dark:text-neutral-500">
-            Last {routeHistoryHours}h from <code className="rounded bg-neutral-100 px-1 text-[10.5px] dark:bg-neutral-800">location_events</code>. Hover dots for details.
+            Last {routeHistoryHours}h · hover dots for details.
           </p>
           <p className="mt-2 text-[11px] text-neutral-400 dark:text-neutral-600">
             {routeHistoryLoading
@@ -337,13 +338,16 @@ export function LiveLocationMap({
                 : "No points in this window"}
           </p>
         </div>
+        )}
 
-        {/* Hint — top right */}
+        {/* Hint — top right, only when children are connected */}
+        {children.length > 0 && (
         <div className="absolute right-3 top-3 z-10 rounded-lg border border-neutral-200/80 bg-white/95 px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.05)] backdrop-blur-sm dark:border-white/[0.08] dark:bg-neutral-900/95">
           <p className="text-[11px] text-neutral-400 dark:text-neutral-600">
             Click marker for live status
           </p>
         </div>
+        )}
 
         {/* Map canvas */}
         <div className="h-full w-full" ref={containerRef} />

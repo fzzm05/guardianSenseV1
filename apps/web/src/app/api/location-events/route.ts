@@ -1,4 +1,5 @@
 import {
+  alerts,
   childEvents,
   childDevices,
   children,
@@ -880,7 +881,7 @@ async function sendTelegramAlerts(
   }
 ) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) return;
+  const db = getDb();
 
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://guardian-sense-v1-web.vercel.app";
   const statusEmoji = ctx.nextStatus === "danger" ? "🔴" : ctx.nextStatus === "warning" ? "🟡" : "🟢";
@@ -891,7 +892,6 @@ async function sendTelegramAlerts(
 
   for (const event of events) {
     const lines: string[] = [];
-
     lines.push(`🚨 *GuardianSense Alert — ${ctx.childName}*`);
     lines.push(``);
     lines.push(`${statusEmoji} *Status:* ${ctx.nextStatus.toUpperCase()}`);
@@ -905,22 +905,54 @@ async function sendTelegramAlerts(
     lines.push(`[📱 Track ${ctx.childName} live on GuardianSense](${dashboardLink})`);
 
     const text = lines.join("\n");
+    const alertMessage = [
+      event.detail ?? "",
+      `Battery: ${battery}${charging}`,
+      speed ? `Speed: ${speed}` : null,
+    ].filter(Boolean).join(" · ");
 
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: "Markdown",
-        disable_web_page_preview: true,
-      }),
-    }).catch(e => console.error("[telegram] push failed:", e));
+    // Derive alert type and priority from event type
+    const alertType =
+      event.type === "zone_entered" || event.type === "zone_exited" || event.type === "zone_changed"
+        ? "geofence" as const
+        : event.type === "charging_started" || event.type === "charging_stopped"
+          ? "device" as const
+          : "safety" as const;
 
-    if (res && !res.ok) {
-      console.error("[telegram] sendMessage failed:", res.status, await res.text());
-    } else {
-      console.log("[telegram] alert sent to chat", chatId, "for event", event.type);
+    const alertPriority =
+      ctx.nextStatus === "danger" ? "high" as const
+        : ctx.nextStatus === "warning" ? "medium" as const
+          : "low" as const;
+
+    // Persist alert record
+    await db.insert(alerts).values({
+      childId: ctx.childId,
+      type: alertType,
+      priority: alertPriority,
+      title: event.title,
+      message: alertMessage,
+      actionsJson: [],
+    }).catch(e => console.error("[telegram] failed to persist alert:", e));
+
+    // Send Telegram push (if token available)
+    if (token) {
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text,
+          parse_mode: "Markdown",
+          disable_web_page_preview: true,
+        }),
+      }).catch(e => console.error("[telegram] push failed:", e));
+
+      if (res && !res.ok) {
+        console.error("[telegram] sendMessage failed:", res.status, await res.text());
+      } else {
+        console.log("[telegram] alert sent to chat", chatId, "for event", event.type);
+      }
     }
   }
 }
+
