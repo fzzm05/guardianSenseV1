@@ -65,7 +65,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
   const updateProfile = async (updates: Partial<SettingsData["profile"]>) => {
     const field = Object.keys(updates)[0];
-    setSaving(field);
+    setSaving(field ?? null);
     try {
       const res = await fetch("/api/parent/profile", {
         method: "PATCH",
@@ -83,7 +83,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
   const updateSettings = async (updates: Partial<SettingsData["profile"]>) => {
     const field = Object.keys(updates)[0];
-    setSaving(field);
+    setSaving(field ?? null);
     try {
       const res = await fetch("/api/parent/settings", {
         method: "PATCH",
@@ -100,7 +100,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
   const updateChild = async (childId: string, updates: Partial<SettingsData["children"][0]>) => {
     const field = `${childId}-${Object.keys(updates)[0]}`;
-    setSaving(field);
+    setSaving(field ?? null);
     try {
       const res = await fetch(`/api/children/${childId}`, {
         method: "PATCH",
