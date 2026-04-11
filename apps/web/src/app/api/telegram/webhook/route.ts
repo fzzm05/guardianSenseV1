@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
 
       await replyToTelegram(
         chatId,
-        "🚨 GuardianSense Alerts successfully linked!\n\nYou will now receive instant push alerts here when your children trigger danger zones, drop battery, or move unusually fast."
+        "👋 Welcome! Your GuardianSense alerts are now connected. We'll message you here whenever your child leaves a safe zone, loses signal, or the device runs low on battery."
       );
 
       console.log("[telegram-webhook] ✓ linked chat", chatId, "→ parent", parent.id);

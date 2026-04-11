@@ -90,6 +90,7 @@ export async function POST(request: NextRequest) {
         .select({
           id: children.id,
           parentId: children.parentId,
+          displayName: children.displayName,
           currentZoneLabel: children.currentZoneLabel,
           status: children.status,
           lastLatitude: children.lastLatitude,
@@ -309,7 +310,16 @@ export async function POST(request: NextRequest) {
           });
 
           if (child.telegramChatId && child.pushAlertsEnabled) {
-            void sendTelegramAlerts(child.telegramChatId, insertedTimelineEvents);
+            void sendTelegramAlerts(child.telegramChatId, insertedTimelineEvents, {
+              childId: child.id,
+              childName: child.displayName,
+              batteryLevel: input.telemetry?.batteryLevel ?? null,
+              isCharging: input.telemetry?.isCharging ?? null,
+              speedMetersPerSecond: input.point.speedMetersPerSecond ?? null,
+              latitude: input.point.latitude,
+              longitude: input.point.longitude,
+              nextStatus,
+            });
           }
         }
 
@@ -857,22 +867,60 @@ function buildChildTimelineEvents({
 
 async function sendTelegramAlerts(
   chatId: string,
-  events: { type: string; title: string; detail: string | null }[]
+  events: { type: string; title: string; detail: string | null }[],
+  ctx: {
+    childId: string;
+    childName: string;
+    batteryLevel: number | null;
+    isCharging: boolean | null;
+    speedMetersPerSecond: number | null;
+    latitude: number;
+    longitude: number;
+    nextStatus: string;
+  }
 ) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) return;
 
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://guardian-sense-v1-web.vercel.app";
+  const statusEmoji = ctx.nextStatus === "danger" ? "🔴" : ctx.nextStatus === "warning" ? "🟡" : "🟢";
+  const battery = ctx.batteryLevel != null ? `${Math.round(ctx.batteryLevel * 100)}%` : "Unknown";
+  const charging = ctx.isCharging == null ? "" : ctx.isCharging ? " ⚡" : "";
+  const speed = ctx.speedMetersPerSecond != null ? `${(ctx.speedMetersPerSecond * 3.6).toFixed(1)} km/h` : null;
+  const dashboardLink = `${APP_URL}/dashboard?child=${ctx.childId}`;
+
   for (const event of events) {
-    const text = `🚨 *GuardianSense Alert*\\n\\n*${event.title}*\\n${event.detail ? `_${event.detail}_` : ""}`;
-    
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const lines: string[] = [];
+
+    lines.push(`🚨 *GuardianSense Alert — ${ctx.childName}*`);
+    lines.push(``);
+    lines.push(`${statusEmoji} *Status:* ${ctx.nextStatus.toUpperCase()}`);
+    lines.push(``);
+    lines.push(`📍 *${event.title}*`);
+    if (event.detail) lines.push(`_${event.detail}_`);
+    lines.push(``);
+    lines.push(`🔋 Battery: ${battery}${charging}`);
+    if (speed) lines.push(`💨 Speed: ${speed}`);
+    lines.push(``);
+    lines.push(`[📱 Track ${ctx.childName} live on GuardianSense](${dashboardLink})`);
+
+    const text = lines.join("\n");
+
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: chatId,
         text,
-        parse_mode: "Markdown"
+        parse_mode: "Markdown",
+        disable_web_page_preview: true,
       }),
     }).catch(e => console.error("[telegram] push failed:", e));
+
+    if (res && !res.ok) {
+      console.error("[telegram] sendMessage failed:", res.status, await res.text());
+    } else {
+      console.log("[telegram] alert sent to chat", chatId, "for event", event.type);
+    }
   }
 }

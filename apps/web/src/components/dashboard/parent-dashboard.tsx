@@ -52,6 +52,7 @@ type ParentDashboardProps = {
   parentEmail: string;
   activeRoute?: "overview" | "children" | "activity" | "zones" | "devices";
   isTelegramLinked: boolean;
+  initialSelectedChildId?: string | null;
   children: ChildSummary[];
   recentEvents: ChildTimelineEvent[];
   safeZones: SafeZone[];
@@ -93,12 +94,13 @@ export function ParentDashboard({
   parentEmail,
   activeRoute = "overview",
   isTelegramLinked,
+  initialSelectedChildId = null,
   children,
   recentEvents,
   safeZones,
 }: ParentDashboardProps) {
   const [liveChildren, setLiveChildren] = useState(children);
-  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(initialSelectedChildId);
   const [selectedChildFocusKey, setSelectedChildFocusKey] = useState("initial");
   const [liveRecentEvents, setLiveRecentEvents] = useState(recentEvents);
   const [historyWindowHours, setHistoryWindowHours] = useState<(typeof historyWindowOptions)[number]>(6);
