@@ -296,6 +296,8 @@ export async function POST(request: NextRequest) {
             .returning({
               id: childEvents.id,
               type: childEvents.type,
+              title: childEvents.title,
+              detail: childEvents.detail,
             });
 
           console.log("[child-events] inserted timeline events:", {
