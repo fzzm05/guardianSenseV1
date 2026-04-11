@@ -13,6 +13,7 @@ export default async function DashboardPage() {
       parentDisplayName={data.parentDisplayName}
       recentEvents={data.recentEvents}
       safeZones={data.safeZones}
+      isTelegramLinked={data.isTelegramLinked}
     />
   );
 }
