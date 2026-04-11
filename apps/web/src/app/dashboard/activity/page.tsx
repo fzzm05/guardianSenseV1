@@ -1,4 +1,9 @@
+import { Metadata } from "next";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+
+export const metadata: Metadata = {
+  title: "Activity History",
+};
 import { LocalTime } from "@/components/dashboard/local-time";
 import { loadParentDashboardData } from "@/lib/dashboard/load-parent-dashboard-data";
 

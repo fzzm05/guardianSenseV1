@@ -1,4 +1,9 @@
+import { Metadata } from "next";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+
+export const metadata: Metadata = {
+  title: "Safe Zones",
+};
 import { SafeZonesPanel } from "@/components/dashboard/safe-zones-panel";
 import { loadParentDashboardData } from "@/lib/dashboard/load-parent-dashboard-data";
 

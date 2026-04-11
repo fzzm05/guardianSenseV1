@@ -1,4 +1,9 @@
+import { Metadata } from "next";
 import type { ReactNode } from "react";
+
+export const metadata: Metadata = {
+  title: "Registered Devices",
+};
 
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { LocalTime } from "@/components/dashboard/local-time";
