@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "child",
-    "slug": "child",
+    "name": "GuardianSense",
+    "slug": "guardiansense",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,21 +10,31 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0a0a0a"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fzzm.guardiansense"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0a0a0a"
       },
+      "package": "com.fzzm.guardiansense",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
+    "updates": {
+      "url": "https://u.expo.dev/fzzm-guardiansense"
+    },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "931e635a-50c0-4cd5-a6f7-ebe2e496e636"
+      }
     }
   }
 }
