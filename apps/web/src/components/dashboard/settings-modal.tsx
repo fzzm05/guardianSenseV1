@@ -20,7 +20,7 @@ type SettingsData = {
   profile: {
     displayName: string;
     email: string;
-    phoneNumber: string;
+    phoneNumber: string | null;
     timezone: string;
     riskSensitivity: number;
     alertFrequencySeconds: number;
@@ -31,7 +31,7 @@ type SettingsData = {
   children: Array<{
     id: string;
     displayName: string;
-    dateOfBirth: string;
+    dateOfBirth: string | null;
   }>;
 };
 
@@ -331,8 +331,8 @@ function AccountSettings({
             label="Phone Number" 
             id="phoneNumber"
             placeholder="+1 555 000 0000"
-            defaultValue={profile.phoneNumber}
-            onSave={(v) => onUpdate({ phoneNumber: v || null })}
+            defaultValue={profile.phoneNumber ?? ""}
+            onSave={(v) => onUpdate({ phoneNumber: v.trim() || null })}
             saving={saving === "phoneNumber"}
           />
           <InputGroup 
@@ -451,8 +451,8 @@ function ChildrenSettings({
               label="Date of Birth" 
               id={`dob-${child.id}`}
               placeholder="YYYY-MM-DD"
-              defaultValue={child.dateOfBirth}
-              onSave={(v) => onUpdate(child.id, { dateOfBirth: v || null })}
+              defaultValue={child.dateOfBirth ?? ""}
+              onSave={(v) => onUpdate(child.id, { dateOfBirth: v.trim() || null })}
               saving={saving === `${child.id}-dateOfBirth`}
             />
           </div>
