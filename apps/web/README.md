@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GuardianSense — Web
+
+The parent-facing dashboard and API backend, built with Next.js. This is the core of the GuardianSense platform — it handles everything from location data ingestion to the real-time map view parents use to monitor their children.
+
+## What Lives Here
+
+- **Parent dashboard** — Live map, device status, safe zone overlays, and event timeline
+- **API routes** — Location event ingestion, pairing code flow, device telemetry, safe zone management
+- **Auth** — Session management backed by Firebase
+- **Realtime** — Live dashboard updates via Supabase Postgres replication
+- **Alert delivery** — Telegram bot integration for instant push notifications
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# From the monorepo root
+npm install
+
+# Copy and fill in environment variables
+cp .env.example .env.local
+
+# Start the dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The dashboard runs at `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `FIREBASE_*` | Firebase Admin SDK credentials |
+| `UPSTASH_REDIS_REST_URL` | Redis URL for rate limiting |
+| `UPSTASH_REDIS_REST_TOKEN` | Redis token |
+| `TELEGRAM_BOT_TOKEN` | Telegram Bot API token for alerts |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps for the dashboard map |
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
+This app is designed to deploy as a standard Next.js application. The recommended path is Vercel — set the root directory to `apps/web` and provide the environment variables listed above.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+After deploying, register your Telegram webhook once:
+```bash
+curl -X POST https://api.telegram.org/bot<TOKEN>/setWebhook \
+  -d "url=https://your-domain.com/api/telegram/webhook"
+```
