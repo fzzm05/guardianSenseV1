@@ -11,20 +11,7 @@ export default async function ZonesPage() {
   const dangerCount = data.safeZones.filter((z) => z.severity === "danger").length;
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
-
-      {/* Sticky header */}
-      <div className="sticky top-0 z-40 border-b border-neutral-200/70 bg-neutral-50/95 px-4 py-3 backdrop-blur-sm dark:border-white/[0.06] dark:bg-neutral-950/95 sm:px-5">
-        <div className="mx-auto max-w-[1560px]">
-          <DashboardHeader
-            activeRoute="zones"
-            description="Shape area intelligence: safe places, caution areas, and danger spaces that power alerts."
-            parentDisplayName={data.parentDisplayName}
-            parentEmail={data.parentEmail}
-            title="Zones"
-          />
-        </div>
-      </div>
+    <main className="min-h-full bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
 
       {/* Summary bar */}
       <div className="border-b border-neutral-200/70 bg-white dark:border-white/[0.06] dark:bg-neutral-900">

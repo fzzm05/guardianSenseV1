@@ -11,14 +11,11 @@ export default async function DashboardPage({
 
   return (
     <ParentDashboard
-      activeRoute="overview"
-      children={data.children}
-      parentEmail={data.parentEmail}
       parentId={data.parentId}
-      parentDisplayName={data.parentDisplayName}
+      isTelegramLinked={data.isTelegramLinked}
+      children={data.children}
       recentEvents={data.recentEvents}
       safeZones={data.safeZones}
-      isTelegramLinked={data.isTelegramLinked}
       initialSelectedChildId={initialChildId ?? null}
     />
   );

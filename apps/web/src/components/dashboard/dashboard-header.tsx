@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import { NotificationBell } from "@/components/dashboard/notification-bell";
@@ -19,20 +19,20 @@ const routeItems = [
 ] as const;
 
 type DashboardHeaderProps = {
-  activeRoute: (typeof routeItems)[number]["id"];
   parentDisplayName: string;
   parentEmail: string;
-  title: string;
-  description: string;
 };
 
 export function DashboardHeader({
-  activeRoute,
   parentDisplayName,
 }: DashboardHeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+
+  // Auto-detect active route from pathname
+  const activeRoute = routeItems.find(item => item.href === pathname)?.id ?? "overview";
 
   useEffect(() => {
     setMounted(true);

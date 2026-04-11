@@ -2,8 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import type { RouteHistoryPoint } from "@/components/dashboard/live-location-map";
 import { LocalTime } from "@/components/dashboard/local-time";
 import { type SafeZone } from "@/components/dashboard/safe-zones-panel";
@@ -48,9 +46,6 @@ type ChildSummary = {
 
 type ParentDashboardProps = {
   parentId: string;
-  parentDisplayName: string;
-  parentEmail: string;
-  activeRoute?: "overview" | "children" | "zones" | "devices";
   isTelegramLinked: boolean;
   initialSelectedChildId?: string | null;
   children: ChildSummary[];
@@ -90,9 +85,6 @@ const historyWindowOptions = [1, 3, 6, 12] as const;
 
 export function ParentDashboard({
   parentId,
-  parentDisplayName,
-  parentEmail,
-  activeRoute = "overview",
   isTelegramLinked,
   initialSelectedChildId = null,
   children,
@@ -227,18 +219,7 @@ export function ParentDashboard({
   const activeZonesCount = safeZones.filter((z) => z.isActive).length;
 
   return (
-    <main className="flex h-screen flex-col overflow-hidden bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
-
-      {/* Header */}
-      <div className="shrink-0 px-4 py-3">
-        <DashboardHeader
-          activeRoute={activeRoute}
-          description="Parent command center for live movement, zones, device state, and recent activity."
-          parentDisplayName={parentDisplayName}
-          parentEmail={parentEmail}
-          title="Parent operations"
-        />
-      </div>
+    <main className="flex h-full flex-col overflow-hidden bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
 
       {/* Summary bar */}
       <div className="shrink-0 border-b border-neutral-200/70 bg-white px-5 dark:border-white/[0.06] dark:bg-neutral-900">

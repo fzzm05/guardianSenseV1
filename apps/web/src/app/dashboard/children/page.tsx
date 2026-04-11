@@ -9,21 +9,7 @@ export default async function ChildrenPage() {
   const data = await loadParentDashboardData();
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
-
-      {/* Header */}
-      <div className="sticky top-0 z-40 border-b border-neutral-200/70 px-4 py-3 bg-neutral-50/95 backdrop-blur-sm dark:border-white/[0.06] dark:bg-neutral-950/95">
-        <div className="mx-auto max-w-[1560px]">
-          <DashboardHeader
-            activeRoute="children"
-            description="Roster view — inspect each child without the full map overview."
-            parentDisplayName={data.parentDisplayName}
-            parentEmail={data.parentEmail}
-            title="Child roster"
-          />
-        </div>
-      </div>
-
+    <main className="min-h-full bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
       {/* Body */}
       <div className="mx-auto max-w-[1560px] px-4 py-5 sm:px-5">
         <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
