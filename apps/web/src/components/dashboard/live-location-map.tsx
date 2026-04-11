@@ -582,8 +582,8 @@ function buildRoutePopupHtml(point: RouteHistoryPoint) {
         ["Charging", formatCharging(point.isCharging)],
         ["Network", point.networkType ?? "Unknown"],
       ].map(([k, v]) => `<tr>
-        <td style="color:#6e7781;padding:2px 0;padding-right:12px">${escapeHtml(k)}</td>
-        <td style="color:#24292f;font-weight:500;padding:2px 0">${escapeHtml(v)}</td>
+        <td style="color:#6e7781;padding:2px 0;padding-right:12px">${escapeHtml(k as string)}</td>
+        <td style="color:#24292f;font-weight:500;padding:2px 0">${escapeHtml(v as string)}</td>
       </tr>`).join("")}
     </table>
   </div>`;
@@ -603,7 +603,7 @@ function buildCurrentStatusPopupHtml(child: ChildSummary) {
         ["Speed", formatSpeed(child.speedMetersPerSecond)],
         ["Last seen", formatDateTime(child.deviceLastSeenAt ?? child.lastRecordedAt)],
       ].map(([k, v]) => `<tr>
-        <td style="color:#6e7781;padding:2px 0;padding-right:12px">${escapeHtml(k)}</td>
+        <td style="color:#6e7781;padding:2px 0;padding-right:12px">${escapeHtml(k as string)}</td>
         <td style="color:#24292f;font-weight:500;padding:2px 0">${escapeHtml(v ?? "")}</td>
       </tr>`).join("")}
     </table>
