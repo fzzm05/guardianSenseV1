@@ -374,7 +374,7 @@ export function ParentDashboard({
               </div>
             ) : (
               <a
-                href={`https://t.me/GuardianSenseBot?start=${parentId}`}
+                href={`https://t.me/guardianSense_bot?start=${parentId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex w-full items-center justify-center gap-2 rounded-lg bg-[#229ED9]/10 px-4 py-2.5 text-[13px] font-medium text-[#229ED9] transition-all hover:bg-[#229ED9]/15 dark:bg-[#229ED9]/15 dark:text-[#54bdf1] dark:hover:bg-[#229ED9]/25"
