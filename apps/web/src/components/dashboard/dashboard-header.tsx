@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const routeItems = [
   { id: "overview", label: "Overview", href: "/dashboard" },
+  { id: "activity", label: "Activity", href: "/dashboard/activity" },
   { id: "children", label: "Children", href: "/dashboard/children" },
   { id: "zones", label: "Zones", href: "/dashboard/zones" },
   { id: "devices", label: "Devices", href: "/dashboard/devices" },
@@ -145,6 +146,13 @@ function TaskbarIcon({ routeId }: { routeId: (typeof routeItems)[number]["id"] }
     return (
       <svg aria-hidden className={cls} fill="currentColor" viewBox="0 0 24 24">
         <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Zm0-7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+      </svg>
+    );
+  }
+  if (routeId === "activity") {
+    return (
+      <svg aria-hidden className={cls} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
       </svg>
     );
   }
