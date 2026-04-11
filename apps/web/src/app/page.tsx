@@ -71,7 +71,7 @@ export default function Home() {
             </svg>
           </a>
           <a
-            href="#download"
+            href="https://expo.dev/accounts/fzzm05/projects/guardiansense/builds/19696dd5-2e6c-46f2-94ec-65eb2153db00"
             className="inline-flex items-center gap-2 rounded-lg border border-neutral-200/80 bg-white px-5 py-2.5 text-[14px] font-medium text-neutral-600 shadow-sm transition hover:border-neutral-300 hover:text-neutral-900 dark:border-white/[0.08] dark:bg-neutral-900 dark:text-neutral-300"
           >
             <Download size={16}/> Download child app
@@ -245,18 +245,15 @@ export default function Home() {
 
               {/* Google Play button */}
               <a
-                href="#"
+                href="https://expo.dev/accounts/fzzm05/projects/guardiansense/builds/19696dd5-2e6c-46f2-94ec-65eb2153db00"
                 className="inline-flex w-fit items-center gap-3 rounded-xl border border-neutral-200/80 bg-neutral-50 px-4 py-3 transition hover:border-neutral-300 hover:bg-neutral-100 dark:border-white/[0.08] dark:bg-neutral-800 dark:hover:bg-neutral-700"
               >
-                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none">
-                  <path d="M3.18 23.76a2.5 2.5 0 0 1-.68-1.8V2.04C2.5 1.3 2.73.7 3.18.24L3.3.12l12.12 12.12v.28L3.3 24.64l-.12-.88Z" fill="#EA4335"/>
-                  <path d="M19.56 16.68l-4.14-4.14V12.28l4.14-4.14 1.02.58 5.1 2.94c1.44.84 1.44 2.22 0 3.06l-5.1 2.94-1.02.02Z" fill="#FBBC04"/>
-                  <path d="M20.58 16.66L15.42 11.5 3.18 23.76c.48.42 1.26.48 2.1.06l15.3-7.16Z" fill="#34A853"/>
-                  <path d="M20.58 7.34L5.28.18C4.44-.24 3.66-.18 3.18.24L15.42 12.5l5.16-5.16Z" fill="#4285F4"/>
-                </svg>
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg text-white">
+                  <Download size={20} />
+                </div>
                 <div>
-                  <div className="text-[10px] text-neutral-400 dark:text-neutral-500">Get it on</div>
-                  <div className="text-[14px] font-semibold text-neutral-900 dark:text-white">Google Play</div>
+                  <div className="text-[10px] text-neutral-400 dark:text-neutral-500">Download for</div>
+                  <div className="text-[14px] font-semibold text-neutral-900 dark:text-white">Android (APK)</div>
                 </div>
               </a>
             </div>
@@ -264,14 +261,14 @@ export default function Home() {
             {/* Right QR */}
             <div className="flex flex-col items-center justify-center gap-4 border-t border-neutral-100 bg-neutral-50 p-8 dark:border-white/[0.05] dark:bg-neutral-900/50 lg:border-l lg:border-t-0">
               <Image
-                src="/qr-placeholder.png"
+                src="/qr-download.svg"
                 alt="QR code to download GuardianSense child app"
                 width={160}
                 height={160}
                 className="rounded-xl border border-neutral-200 dark:border-white/[0.07]"
               />
               <p className="text-center text-[12px] text-neutral-400 dark:text-neutral-600">
-                Scan with your child's phone<br />to open the Play Store listing
+                Scan with your child's phone<br />to download the APK instantly
               </p>
             </div>
           </div>

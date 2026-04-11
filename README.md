@@ -1,86 +1,88 @@
-# GuardianSense
+# 🛡️ GuardianSense
 
-A real-time child safety monitoring platform built for parents who want meaningful awareness — not just a tracker. GuardianSense combines location intelligence, device telemetry, and configurable safe zones to give parents a live, contextual picture of their child's day.
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)](https://react.dev/)
+[![Expo](https://img.shields.io/badge/Expo-54-4630EB?style=flat-square&logo=expo)](https://expo.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Drizzle](https://img.shields.io/badge/Drizzle-ORM-C5F74F?style=flat-square)](https://orm.drizzle.team/)
 
----
-
-## What It Does
-
-- **Real-time location tracking** — The parent dashboard updates live as the child's device reports its position, without requiring a manual refresh.
-- **Safe zones & danger detection** — Parents define geographic boundaries. The system automatically classifies each location event as safe, cautious, or dangerous based on proximity to those zones.
-- **Device telemetry** — Battery level, charging state, network type, and movement speed are streamed alongside location data so parents always know if a device is healthy.
-- **Instant alerts** — When something significant happens (zone violations, heartbeat loss, unusual movement), parents receive an immediate notification via Telegram.
-- **Secure device pairing** — Child devices are authenticated with a short-lived pairing code that generates a persistent token, so only trusted hardware can submit data.
-- **Timeline of events** — Every meaningful transition (entered zone, left zone, charging connected, heartbeat lost) is recorded as a browseable timeline on the parent dashboard.
+**GuardianSense** is a high-performance, real-time child safety ecosystem. It provides parents with "contextual awareness" rather than just location dots, combining location intelligence, device telemetry, and automated geofencing into a premium, fluid dashboard experience.
 
 ---
 
-## Architecture
+## 🚀 Why This Project Is Impressive
 
-This is a TypeScript monorepo structured as a modular monolith.
+This repository isn't just a "tracker"—it's a full-stack engineering showcase built with a focus on type safety, real-time performance, and modern UI/UX patterns.
 
-| Workspace | Purpose |
-|---|---|
-| `apps/web` | Next.js parent dashboard and API backend |
-| `apps/child` | Expo app installed on the child's device |
-| `packages/db` | Drizzle ORM schema and database client |
-| `packages/types` | Shared Zod schemas and TypeScript types |
-| `infra` | Infrastructure configuration |
-
-**Core infrastructure:**
-- **Database** — PostgreSQL via Supabase (schema managed by Drizzle ORM)
-- **Realtime** — Supabase Postgres replication for live dashboard updates
-- **Auth** — Firebase Authentication for parent accounts; token-based auth for child devices
-- **Alerts** — Telegram Bot API for push notifications
-- **Rate limiting** — Redis (Upstash) for pairing code flow protection
+- **Monorepo Architecture**: A robust npm-workspace structure that shares logic and types across a Next.js web app and an Expo mobile client.
+- **Full-Stack Type Safety**: Leverages **Zod** as a Single Source of Truth. API contracts used by the Next.js backend are the exact same schemas validating data in the Expo mobile app, preventing entire classes of runtime bugs.
+- **Real-Time Synchronization**: Implements **Supabase Postgres Replication** to push child location updates and telemetry to the parent dashboard instantly, eliminating the need for manual polling.
+- **Notion-Inspired UX**: The parent dashboard features a sophisticated "Instant-Apply" settings model with optimistic UI updates and real-time sync indicators.
+- **Deterministic Location Intelligence**: A custom classification engine that maps raw GPS pings to user-defined "Safe Zones" with high precision and low latency.
 
 ---
 
-## Current Status
+## 🏗️ Technical Architecture
 
-The platform is feature-complete for its first vertical slice and production-ready for deployment.
+```mermaid
+graph TD
+    subgraph "Client Layer"
+        ChildApp["Expo Mobile App (Child)"]
+        WebDash["Next.js Dashboard (Parent)"]
+    end
 
-**Completed:**
-- Authentication and session management
-- Child device pairing and secure token issuance
-- Location event ingestion, zone matching, and snapshot updates
-- Device telemetry processing (battery, charging, network, speed)
-- Timeline event generation for zone transitions and device state changes
-- Parent dashboard with live Supabase realtime subscriptions
-- Telegram alert integration with deep-link account linking
-- Safe zone management
+    subgraph "API & Logic"
+        API["Next.js API Routes"]
+        Types["@guardiansense/types (Zod)"]
+    end
 
-**Stabilised:**
-- Route protection and API authentication
-- Ghost device prevention during OS updates
-- Dashboard sorting to correctly prioritise active devices
-- Parent settings initialisation on account creation
-- Database SSL for remote connections
+    subgraph "Data & Realtime"
+        DB[("PostgreSQL (Supabase)")]
+        Realtime["Postgres Changes (Realtime)"]
+        Redis["Upstash Redis (Rate Limiting)"]
+    end
+
+    ChildApp -- "Secure Token Auth" --> API
+    API -- "Drizzle ORM" --> DB
+    DB -- "CDC" --> Realtime
+    Realtime -- "Websockets" --> WebDash
+    Types -- "Shared Contract" --> ChildApp
+    Types -- "Shared Contract" --> API
+```
 
 ---
 
-## Running Locally
+## 📂 Project Structure
+
+| Workspace | Purpose | Key Technologies |
+|---|---|---|
+| [`apps/web`](file:///Users/farooqueazam/Desktop/docu3c/guardianSenseV1/apps/web) | Parent Dashboard & Core Backend | Next.js, Framer Motion, Tailwind 4 |
+| [`apps/child`](file:///Users/farooqueazam/Desktop/docu3c/guardianSenseV1/apps/child) | Mobile Tracking Client | Expo, Background Location, EAS |
+| [`packages/db`](file:///Users/farooqueazam/Desktop/docu3c/guardianSenseV1/packages/db) | Database Layer | Drizzle ORM, Supabase |
+| [`packages/types`](file:///Users/farooqueazam/Desktop/docu3c/guardianSenseV1/packages/types) | Shared Domain Types | Zod, TypeScript |
+
+---
+
+## 🛠️ Installation & Setup
 
 ```bash
-# Install dependencies
+# Install dependencies across all workspaces
 npm install
 
-# Set up environment
+# Configure environment
 cp .env.example .env.local
-# Fill in your database, Firebase, Supabase, Upstash, and Telegram credentials
 
-# Start all workspaces
+# Run the entire ecosystem in development mode
 npm run dev
 ```
 
-The parent dashboard runs at `http://localhost:3000`.
-
 ---
 
-## Next Steps
+## 🎯 Current Roadmap
 
-- Deploy to a public hosting environment to enable live webhook integrations
-- Implement background job processing for deferred alert logic
-- Surface the latest telemetry snapshot via a dedicated API for external consumers
-- Expand alert channels and introduce per-child alert preferences
-- Harden infrastructure for production traffic (connection pooling, error monitoring)
+- [x] **Phase 1**: Core Real-time Location & Telemetry Pipeline.
+- [x] **Phase 2**: Premium Dashboard UI & Responsive Viewport Layout.
+- [x] **Phase 3**: "Instant-Apply" Parent Settings & Device Management.
+- [/] **Phase 4**: Production Mobile Deployment via Expo EAS.
+- [ ] **Phase 5**: Advanced Contextual Alerts (e.g., "Inactive for too long").
