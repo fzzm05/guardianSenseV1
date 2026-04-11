@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+.dark {
+  --background: #071117;
+  --foreground: #eef7f2;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), "Segoe UI", sans-serif;
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+}
+
+.guardian-avatar-marker {
+  background: transparent;
+  border: 0;
+}
+
+.guardian-avatar-marker__shell {
+  position: relative;
+  width: 42px;
+  height: 42px;
+}
+
+.guardian-avatar-marker__shell--selected {
+  width: 52px;
+  height: 52px;
+}
+
+.guardian-avatar-marker__pulse {
+  position: absolute;
+  inset: 2px;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.28);
+  animation: guardian-pulse 1.8s ease-out infinite;
+}
+
+.guardian-avatar-marker__badge {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: linear-gradient(160deg, #f8fafc, #7dd3fc 55%, #0ea5e9 100%);
+  border: 2px solid rgba(8, 17, 32, 0.9);
+  box-shadow:
+    0 0 0 4px rgba(56, 189, 248, 0.16),
+    0 12px 20px rgba(2, 6, 23, 0.3);
+  color: #082f49;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.guardian-avatar-marker__shell--selected .guardian-avatar-marker__badge {
+  box-shadow:
+    0 0 0 5px rgba(16, 185, 129, 0.22),
+    0 16px 24px rgba(2, 6, 23, 0.36);
+  background: linear-gradient(160deg, #f8fafc, #a7f3d0 52%, #10b981 100%);
+  color: #052e26;
+}
+
+.guardian-map-popup .maplibregl-popup-content {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(8, 15, 13, 0.96), rgba(6, 10, 15, 0.98));
+  box-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+  color: #eef7f2;
+  padding: 0;
+}
+
+.guardian-map-popup .maplibregl-popup-tip {
+  border-top-color: rgba(8, 15, 13, 0.96);
+}
+
+.guardian-map-popup__content {
+  min-width: 240px;
+  padding: 16px;
+}
+
+.guardian-map-popup__eyebrow {
+  margin: 0;
+  color: rgba(167, 243, 208, 0.92);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.guardian-map-popup__title {
+  margin: 10px 0 0;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.guardian-map-popup__subtitle {
+  margin: 6px 0 0;
+  color: rgba(203, 213, 225, 0.8);
+  font-size: 13px;
+}
+
+.guardian-map-popup__list {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.guardian-map-popup__list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 10px;
+}
+
+.guardian-map-popup__list dt {
+  color: rgba(148, 163, 184, 0.82);
+  font-size: 12px;
+}
+
+.guardian-map-popup__list dd {
+  margin: 0;
+  color: #eef7f2;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+}
+
+@keyframes guardian-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+
+  70% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}

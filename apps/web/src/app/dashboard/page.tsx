@@ -1,0 +1,18 @@
+import { ParentDashboard } from "@/components/dashboard/parent-dashboard";
+import { loadParentDashboardData } from "@/lib/dashboard/load-parent-dashboard-data";
+
+export default async function DashboardPage() {
+  const data = await loadParentDashboardData();
+
+  return (
+    <ParentDashboard
+      activeRoute="overview"
+      children={data.children}
+      parentEmail={data.parentEmail}
+      parentId={data.parentId}
+      parentDisplayName={data.parentDisplayName}
+      recentEvents={data.recentEvents}
+      safeZones={data.safeZones}
+    />
+  );
+}
