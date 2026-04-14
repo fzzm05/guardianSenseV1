@@ -11,7 +11,7 @@
 
 ---
 
-## 🚀 Why This Project Is Impressive
+## About the project
 
 This repository isn't just a "tracker"—it's a full-stack engineering showcase built with a focus on type safety, real-time performance, and modern UI/UX patterns.
 
@@ -23,7 +23,7 @@ This repository isn't just a "tracker"—it's a full-stack engineering showcase 
 
 ---
 
-## 🏗️ Technical Architecture
+## Technical Architecture
 
 ```mermaid
 graph TD
@@ -53,7 +53,7 @@ graph TD
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 | Workspace | Purpose | Key Technologies |
 |---|---|---|
@@ -64,7 +64,7 @@ graph TD
 
 ---
 
-## 🛠️ Installation & Setup
+## Installation & Setup
 
 ```bash
 # Install dependencies across all workspaces
@@ -78,11 +78,3 @@ npm run dev
 ```
 
 ---
-
-## 🎯 Current Roadmap
-
-- [x] **Phase 1**: Core Real-time Location & Telemetry Pipeline.
-- [x] **Phase 2**: Premium Dashboard UI & Responsive Viewport Layout.
-- [x] **Phase 3**: "Instant-Apply" Parent Settings & Device Management.
-- [/] **Phase 4**: Production Mobile Deployment via Expo EAS.
-- [ ] **Phase 5**: Advanced Contextual Alerts (e.g., "Inactive for too long").

@@ -4,7 +4,7 @@ The mobile tracking client for the GuardianSense ecosystem. Built with **Expo** 
 
 ---
 
-## 🚀 Technical Highlights
+## Technical Highlights
 
 ### 1. Robust Location Engine
 Leverages `expo-location` to monitor geographic coordinates with high precision. The app is optimized to handle different movement states (walking vs. driving) and adjusts its reporting frequency to balance battery life with tracking accuracy.
@@ -23,7 +23,7 @@ Uses a custom authentication flow designed for ease of use and high security:
 
 ---
 
-## 🏗️ Build & Deployment (EAS)
+## Build & Deployment (EAS)
 
 This project uses **Expo Application Services (EAS)** for professional-grade builds and submissions.
 
@@ -42,7 +42,7 @@ eas build --profile production --platform all
 
 ---
 
-## 🛠️ Development Setup
+## Development Setup
 
 ```bash
 # 1. Install dependencies

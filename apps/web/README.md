@@ -4,7 +4,7 @@ The core command center of the GuardianSense ecosystem. Built with **Next.js 15*
 
 ---
 
-## 🚀 Technical Highlights
+## Technical Highlights
 
 ### 1. Fixed-Viewport Dashboard Layout
 To handle high-density data (Live Maps + Timeline Events), we implemented a **Fixed-Viewport** strategy. This prevents the traditional "page scroll," ensuring that the map remains anchored as the source of truth while the sidebar and timeline scroll independently. This provides a professional, "app-like" feel common in sophisticated monitoring software.
@@ -20,7 +20,7 @@ Leverages **Supabase Realtime (Postgres CDC)** to push location updates directly
 
 ---
 
-## 📂 Key Architecture
+## Key Architecture
 
 - **`src/app/api`**: RESTful endpoints for child device ingestion and parent settings management.
 - **`src/components/dashboard`**: A modular component library specializing in live data visualization (Maps, Status Cards, and Timelines).
@@ -28,7 +28,7 @@ Leverages **Supabase Realtime (Postgres CDC)** to push location updates directly
 
 ---
 
-## 🛠️ Environment Configuration
+## Environment Configuration
 
 | Variable | Purpose | Location |
 |---|---|---|
@@ -41,7 +41,7 @@ Leverages **Supabase Realtime (Postgres CDC)** to push location updates directly
 
 ---
 
-## 🏗️ Production Deployment
+## Production Deployment
 
 The app is optimized for **Vercel** with the following configuration:
 1. **Framework**: Next.js (App Router).

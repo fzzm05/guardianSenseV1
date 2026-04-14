@@ -2,18 +2,18 @@
 
 The "Single Source of Truth" for the GuardianSense ecosystem. This package contains the shared domain logic, Zod validation schemas, and TypeScript interfaces used across the Web dashboard and the Mobile client.
 
-## 🚀 Why This Package Exists
+## Why This Package Exists
 
 In a full-stack monorepo, the biggest risk is **schema drift** — where the backend expects one thing, but the mobile app sends another. We solve this by:
 1. **Defining schemas once** in this package.
 2. **Exporting both Zod schemas and TypeScript types**.
 3. **Using schemas for runtime validation** on the API and compile-time safety and IDE support across the entire project.
 
-## 🛠️ Key Technologies
+## Key Technologies
 - **Zod**: For robust runtime schema validation.
 - **TypeScript**: For end-to-end type safety.
 
-## 📂 Logical Sections
+## Logical Sections
 
 ### 1. Identity & Profiles
 Definitions for the core entities: Users, Parents, and Children.
@@ -37,7 +37,7 @@ Specialized schemas for validating PATCH/POST requests.
 - `updateParentSettingsInputSchema`
 - `updateChildInputSchema`
 
-## 💻 Usage Example
+## Usage Example
 
 ```typescript
 import { updateParentSettingsInputSchema, UpdateParentSettingsInput } from "@guardiansense/types";
