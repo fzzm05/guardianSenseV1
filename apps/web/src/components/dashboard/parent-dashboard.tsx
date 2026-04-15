@@ -158,7 +158,7 @@ export function ParentDashboard({
     const supabase = createSupabaseClient();
     const ch = supabase
       .channel(`parent-children-${parentId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "children", filter: `parent_id=eq.${parentId}` }, (payload) => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "children", filter: `parent_id=eq.${parentId}` }, (payload: any) => {
         if (payload.eventType === "INSERT") {
           const inserted = mapRealtimeChild(payload.new as RealtimeChildRow);
           setLiveChildren((cur) => {
@@ -186,7 +186,7 @@ export function ParentDashboard({
     const channels = childIds.flatMap((childId) => {
       const dsCh = supabase
         .channel(`parent-device-status-${parentId}-${childId}`)
-        .on("postgres_changes", { event: "*", schema: "public", table: "device_status", filter: `child_id=eq.${childId}` }, (payload) => {
+        .on("postgres_changes", { event: "*", schema: "public", table: "device_status", filter: `child_id=eq.${childId}` }, (payload: any) => {
           if (payload.eventType === "DELETE") {
             const id = (payload.old as { child_id?: string }).child_id;
             if (id) setLiveChildren((cur) => cur.map((c) => c.id === id ? { ...c, batteryLevel: null, isCharging: null, networkType: null, speedMetersPerSecond: null, locationSource: null } : c));
@@ -199,7 +199,7 @@ export function ParentDashboard({
 
       const evCh = supabase
         .channel(`parent-child-events-${parentId}-${childId}`)
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "child_events", filter: `child_id=eq.${childId}` }, (payload) => {
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "child_events", filter: `child_id=eq.${childId}` }, (payload: any) => {
           const ne = payload.new as RealtimeChildEventRow;
           const child = liveChildrenRef.current.find((c) => c.id === ne.child_id);
           if (!child) return;

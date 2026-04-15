@@ -19,6 +19,9 @@ export function getPool(): Pool {
   if (!pool) {
     pool = new Pool({
       connectionString: getDatabaseUrl(),
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
       ssl: process.env.NODE_ENV === "production" || getDatabaseUrl().includes(".supabase.com")
         ? { rejectUnauthorized: false }
         : false

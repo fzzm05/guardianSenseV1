@@ -43,6 +43,21 @@ function isZodError(error: unknown): error is z.ZodError {
   );
 }
 
+type AlertContext = {
+  chatId: string;
+  events: Array<{ type: string; title: string; detail: string | null }>;
+  ctx: {
+    childId: string;
+    childName: string;
+    batteryLevel: number | null;
+    isCharging: boolean | null;
+    speedMetersPerSecond: number | null;
+    latitude: number;
+    longitude: number;
+    nextStatus: string;
+  };
+};
+
 export async function POST(request: NextRequest) {
   const requestStartedAt = performance.now();
 
@@ -85,8 +100,10 @@ export async function POST(request: NextRequest) {
 
     const db = getDb();
 
-    const result = await db.transaction(async (tx) => {
+    const { result, pendingAlert } = await db.transaction(async (tx) => {
       const transactionStartedAt = performance.now();
+      let alert: AlertContext | null = null;
+
       const [child] = await tx
         .select({
           id: children.id,
@@ -129,12 +146,7 @@ export async function POST(request: NextRequest) {
             ),
           )
           .limit(1);
-        console.log("[location-events] device ownership lookup ms:", {
-          childId: input.childId,
-          deviceId: input.deviceId,
-          durationMs: roundDuration(performance.now() - childLookupCompletedAt),
-        });
-
+        
         if (!device) {
           throw new RouteError("Device does not belong to this child.", 409);
         }
@@ -161,13 +173,6 @@ export async function POST(request: NextRequest) {
         );
       const zoneQueryCompletedAt = performance.now();
       const zoneMatch = determineCurrentZone(activeZones, input.point.latitude, input.point.longitude);
-      logZoneEvaluation({
-        childId: input.childId,
-        latitude: input.point.latitude,
-        longitude: input.point.longitude,
-        zones: activeZones,
-        zoneMatch,
-      });
       const nextStatus = deriveChildStatus(input, zoneMatch?.severity ?? null);
       const urgentUpdate = isUrgentLocationUpdate(input, nextStatus);
       const nextZoneLabel = zoneMatch?.label ?? null;
@@ -235,7 +240,6 @@ export async function POST(request: NextRequest) {
             })
             .where(eq(childDevices.id, input.deviceId));
         }
-        const childDeviceUpdateCompletedAt = performance.now();
 
         await tx
           .insert(deviceStatus)
@@ -269,7 +273,6 @@ export async function POST(request: NextRequest) {
               updatedAt: new Date(),
             },
           });
-        const deviceStatusUpsertCompletedAt = performance.now();
 
         const timelineEvents = buildChildTimelineEvents({
           childId: input.childId,
@@ -278,17 +281,6 @@ export async function POST(request: NextRequest) {
           nextZoneSeverity: zoneMatch?.severity ?? null,
           previousIsCharging,
           nextIsCharging: input.telemetry?.isCharging ?? null,
-        });
-
-        console.log("[child-events] derived timeline events:", {
-          childId: input.childId,
-          previousZoneLabel: child.currentZoneLabel ?? null,
-          nextZoneLabel,
-          nextZoneSeverity: zoneMatch?.severity ?? null,
-          previousIsCharging,
-          nextIsCharging: input.telemetry?.isCharging ?? null,
-          eventCount: timelineEvents.length,
-          eventTypes: timelineEvents.map((timelineEvent) => timelineEvent.type),
         });
 
         if (timelineEvents.length > 0) {
@@ -302,45 +294,23 @@ export async function POST(request: NextRequest) {
               detail: childEvents.detail,
             });
 
-          console.log("[child-events] inserted timeline events:", {
-            childId: input.childId,
-            insertedCount: insertedTimelineEvents.length,
-            insertedEventTypes: insertedTimelineEvents.map(
-              (insertedTimelineEvent) => insertedTimelineEvent.type,
-            ),
-          });
-
           if (child.telegramChatId && child.pushAlertsEnabled) {
-            void sendTelegramAlerts(child.telegramChatId, insertedTimelineEvents, {
-              childId: child.id,
-              childName: child.displayName,
-              batteryLevel: input.telemetry?.batteryLevel ?? null,
-              isCharging: input.telemetry?.isCharging ?? null,
-              speedMetersPerSecond: input.point.speedMetersPerSecond ?? null,
-              latitude: input.point.latitude,
-              longitude: input.point.longitude,
-              nextStatus,
-            });
+            alert = {
+              chatId: child.telegramChatId,
+              events: insertedTimelineEvents,
+              ctx: {
+                childId: child.id,
+                childName: child.displayName,
+                batteryLevel: input.telemetry?.batteryLevel ?? null,
+                isCharging: input.telemetry?.isCharging ?? null,
+                speedMetersPerSecond: input.point.speedMetersPerSecond ?? null,
+                latitude: input.point.latitude,
+                longitude: input.point.longitude,
+                nextStatus,
+              },
+            };
           }
         }
-
-        console.log("[location-events] transaction timing ms:", {
-          childId: input.childId,
-          deviceId: input.deviceId,
-          parseMs: roundDuration(parseCompletedAt - requestStartedAt),
-          childLookupMs: roundDuration(childLookupCompletedAt - transactionStartedAt),
-          zoneQueryMs: roundDuration(zoneQueryCompletedAt - childLookupCompletedAt),
-          locationInsertMs: roundDuration(locationInsertCompletedAt - zoneQueryCompletedAt),
-          childSnapshotMs: roundDuration(childSnapshotCompletedAt - locationInsertCompletedAt),
-          childDeviceUpdateMs: roundDuration(
-            childDeviceUpdateCompletedAt - childSnapshotCompletedAt,
-          ),
-          deviceStatusUpsertMs: roundDuration(
-            deviceStatusUpsertCompletedAt - childDeviceUpdateCompletedAt,
-          ),
-          childEventsMs: roundDuration(performance.now() - deviceStatusUpsertCompletedAt),
-          transactionTotalMs: roundDuration(performance.now() - transactionStartedAt),
-        });
       } else {
         const timelineEvents = buildChildTimelineEvents({
           childId: input.childId,
@@ -351,17 +321,6 @@ export async function POST(request: NextRequest) {
           nextIsCharging: null,
         });
 
-        console.log("[child-events] derived timeline events:", {
-          childId: input.childId,
-          previousZoneLabel: child.currentZoneLabel ?? null,
-          nextZoneLabel,
-          nextZoneSeverity: zoneMatch?.severity ?? null,
-          previousIsCharging: null,
-          nextIsCharging: null,
-          eventCount: timelineEvents.length,
-          eventTypes: timelineEvents.map((timelineEvent) => timelineEvent.type),
-        });
-
         if (timelineEvents.length > 0) {
           const insertedTimelineEvents = await tx
             .insert(childEvents)
@@ -369,43 +328,50 @@ export async function POST(request: NextRequest) {
             .returning({
               id: childEvents.id,
               type: childEvents.type,
+              title: childEvents.title,
+              detail: childEvents.detail,
             });
 
-          console.log("[child-events] inserted timeline events:", {
-            childId: input.childId,
-            insertedCount: insertedTimelineEvents.length,
-            insertedEventTypes: insertedTimelineEvents.map(
-              (insertedTimelineEvent) => insertedTimelineEvent.type,
-            ),
-          });
+          if (child.telegramChatId && child.pushAlertsEnabled) {
+            alert = {
+              chatId: child.telegramChatId,
+              events: insertedTimelineEvents,
+              ctx: {
+                childId: child.id,
+                childName: child.displayName,
+                batteryLevel: input.telemetry?.batteryLevel ?? null,
+                isCharging: input.telemetry?.isCharging ?? null,
+                speedMetersPerSecond: input.point.speedMetersPerSecond ?? null,
+                latitude: input.point.latitude,
+                longitude: input.point.longitude,
+                nextStatus,
+              },
+            };
+          }
         }
-
-        console.log("[location-events] transaction timing ms:", {
-          childId: input.childId,
-          deviceId: null,
-          parseMs: roundDuration(parseCompletedAt - requestStartedAt),
-          childLookupMs: roundDuration(childLookupCompletedAt - transactionStartedAt),
-          zoneQueryMs: roundDuration(zoneQueryCompletedAt - childLookupCompletedAt),
-          locationInsertMs: roundDuration(locationInsertCompletedAt - zoneQueryCompletedAt),
-          childSnapshotMs: roundDuration(childSnapshotCompletedAt - locationInsertCompletedAt),
-          childEventsMs: roundDuration(performance.now() - childSnapshotCompletedAt),
-          transactionTotalMs: roundDuration(performance.now() - transactionStartedAt),
-        });
       }
 
       return {
-        eventId: event.id,
-        childId: input.childId,
-        deviceId: input.deviceId ?? null,
-        snapshotUpdated: shouldRefreshChildReadModel,
-        snapshotReason: snapshotDecision.reason,
-        urgentUpdate,
-        nextStatus,
-        currentZoneLabel: zoneMatch?.label ?? null,
-        recordedAt: recordedAt.toISOString(),
-        createdAt: event.createdAt.toISOString(),
+        result: {
+          eventId: event.id,
+          childId: input.childId,
+          deviceId: input.deviceId ?? null,
+          snapshotUpdated: shouldRefreshChildReadModel,
+          snapshotReason: snapshotDecision.reason,
+          urgentUpdate,
+          nextStatus,
+          currentZoneLabel: zoneMatch?.label ?? null,
+          recordedAt: recordedAt.toISOString(),
+          createdAt: event.createdAt.toISOString(),
+        },
+        pendingAlert: alert,
       };
     });
+
+    if (pendingAlert) {
+      console.log("[location-events] delivering pending telegram alerts outside transaction");
+      await sendTelegramAlerts(pendingAlert.chatId, pendingAlert.events, pendingAlert.ctx);
+    }
 
     console.log("[location-events] request total ms:", {
       childId: input.childId,
