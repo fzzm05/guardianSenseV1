@@ -78,3 +78,30 @@ npm run dev
 ```
 
 ---
+
+## Development & Deployment (v2)
+
+The project is currently transitioning to **Version 2**. All primary development and staging work occurs on the `v2` branch.
+
+### Versioning Workflow
+- **Branch**: `v2` (Staging/Development)
+- **Automated Checks**: Every push to `v2` triggers a series of **GitHub Action** checks:
+    - **Linting**: Ensures consistent code style.
+    - **Typechecking**: Verifies logic across the entire monorepo (Web + Mobile + DB).
+    - **Build Test**: Confirms the production bundle for `apps/web` is stable.
+
+### Deployment Flow
+We use a hybrid deployment architecture:
+1. **GitHub Actions**: Acts as the gatekeeper for the whole monorepo.
+2. **Vercel**: Automatically deploys the `apps/web` dashboard once the GitHub Action checks pass.
+
+To contribute to v2:
+```bash
+git checkout v2
+# Make changes
+git add .
+git commit -m "feat: your feature"
+git push origin v2
+```
+
+---
