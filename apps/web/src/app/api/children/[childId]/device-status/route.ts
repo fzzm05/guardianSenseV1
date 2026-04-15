@@ -1,6 +1,6 @@
 import { childDevices, children, deviceStatus, getDb } from "@guardiansense/db";
-import { and, desc, eq, sql } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
+import { and, eq, sql } from "drizzle-orm";
+import { NextResponse } from "next/server";
 
 import { getAuthenticatedParentFromSession } from "@/lib/auth/get-authenticated-parent-from-session";
 
@@ -10,7 +10,7 @@ type RouteContext = {
   }>;
 };
 
-export async function GET(_request: NextRequest, context: RouteContext) {
+export async function GET(_: unknown, context: RouteContext) {
   const authenticatedParent = await getAuthenticatedParentFromSession();
 
   if (!authenticatedParent) {

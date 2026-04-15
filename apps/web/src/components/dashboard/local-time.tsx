@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+function subscribe() {
+  return () => {};
+}
 
 type LocalTimeProps = {
   value: string | null;
@@ -11,20 +15,12 @@ export function LocalTime({
   value,
   emptyLabel = "Waiting for first update",
 }: LocalTimeProps) {
-  const [formattedValue, setFormattedValue] = useState(() =>
-    formatUtcTimestamp(value, emptyLabel),
-  );
+  const isMounted = useSyncExternalStore(subscribe, () => true, () => false);
 
-  useEffect(() => {
-    if (!value) {
-      setFormattedValue(emptyLabel);
-      return;
-    }
+  if (!value) return <>{emptyLabel}</>;
+  if (!isMounted) return <>{formatUtcTimestamp(value, emptyLabel)}</>;
 
-    setFormattedValue(formatLocalTimestamp(value));
-  }, [emptyLabel, value]);
-
-  return <>{formattedValue}</>;
+  return <>{formatLocalTimestamp(value)}</>;
 }
 
 function formatUtcTimestamp(value: string | null, emptyLabel: string) {

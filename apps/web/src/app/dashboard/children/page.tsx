@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
+import { Metadata } from "next";
 
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { LocalTime } from "@/components/dashboard/local-time";
 import { PairDevicePanel } from "@/components/dashboard/pair-device-panel";
 import { loadParentDashboardData } from "@/lib/dashboard/load-parent-dashboard-data";
+
+export const metadata: Metadata = {
+  title: "Managed Children",
+};
 
 export default async function ChildrenPage() {
   const data = await loadParentDashboardData();
@@ -19,7 +23,7 @@ export default async function ChildrenPage() {
 
             {/* Pair device panel — unstyled passthrough */}
             <PairDevicePanel
-              children={data.children.map((child) => ({
+              existingChildren={data.children.map((child) => ({
                 id: child.id,
                 displayName: child.displayName,
               }))}

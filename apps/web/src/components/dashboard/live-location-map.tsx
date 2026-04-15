@@ -50,7 +50,7 @@ export type RouteHistoryPoint = {
 };
 
 type LiveLocationMapProps = {
-  children: ChildSummary[];
+  childList: ChildSummary[];
   safeZones: SafeZone[];
   selectedChild: ChildSummary | null;
   selectedChildId?: string | null;
@@ -110,7 +110,7 @@ const LIGHT_MAP_STYLE: google.maps.MapTypeStyle[] = [
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function LiveLocationMap({
-  children,
+  childList,
   safeZones,
   selectedChild,
   selectedChildId,
@@ -162,15 +162,23 @@ export function LiveLocationMap({
 
     return () => {
       popupRef.current?.close();
-      markersRef.current.forEach((m) => m.setMap(null));
-      safeZonesRef.current.forEach((z) => z.setMap(null));
-      if (routeLineRef.current) routeLineRef.current.setMap(null);
-      routePointsRef.current.forEach((p) => p.setMap(null));
+      
+      // Capture ref values for safe cleanup
+      const markers = markersRef.current;
+      const safeZones = safeZonesRef.current;
+      const routeLine = routeLineRef.current;
+      const routePoints = routePointsRef.current;
+
+      markers.forEach((m) => m.setMap(null));
+      safeZones.forEach((z) => z.setMap(null));
+      if (routeLine) routeLine.setMap(null);
+      routePoints.forEach((p) => p.setMap(null));
+
       routePointZoomListenerRef.current?.remove();
       routePointZoomListenerRef.current = null;
       mapRef.current = null;
     };
-  }, []);
+  }, [resolvedTheme]);
 
   // ── Theme sync ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -187,17 +195,17 @@ export function LiveLocationMap({
     if (!map || !isMapReady) return;
     syncSafeZoneLayers(map, safeZones, safeZonesRef);
     syncRouteLayers(map, routeHistory, routeLineRef, routePointsRef, popupRef, routePointZoomListenerRef);
-    syncCurrentMarkers(map, markersRef, popupRef, children, selectedChildId);
-  }, [children, routeHistory, safeZones, selectedChildId, isMapReady]);
+    syncCurrentMarkers(map, markersRef, popupRef, childList, selectedChildId);
+  }, [childList, routeHistory, safeZones, selectedChildId, isMapReady]);
 
   // ── Viewport key ────────────────────────────────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !isMapReady) return;
     if (lastAppliedViewportKeyRef.current === viewportKey) return;
-    fitMapToData({ map, children, routeHistory, safeZones, selectedChild });
+    fitMapToData({ map, children: childList, routeHistory, safeZones, selectedChild });
     lastAppliedViewportKeyRef.current = viewportKey;
-  }, [children, routeHistory, safeZones, selectedChild, viewportKey, isMapReady]);
+  }, [childList, routeHistory, safeZones, selectedChild, viewportKey, isMapReady]);
 
   // ── Focus key ───────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -206,7 +214,7 @@ export function LiveLocationMap({
     if (lastFocusedChildKeyRef.current === selectedChildFocusKey) return;
 
     if (!selectedChild || selectedChild.lastLatitude == null || selectedChild.lastLongitude == null) {
-      fitMapToData({ map, children, routeHistory, safeZones, selectedChild: null });
+      fitMapToData({ map, children: childList, routeHistory, safeZones, selectedChild: null });
       lastFocusedChildKeyRef.current = selectedChildFocusKey;
       return;
     }
@@ -214,7 +222,7 @@ export function LiveLocationMap({
     map.panTo({ lat: selectedChild.lastLatitude, lng: selectedChild.lastLongitude });
     map.setZoom(15.5);
     lastFocusedChildKeyRef.current = selectedChildFocusKey;
-  }, [selectedChildFocusKey, selectedChild, children, routeHistory, safeZones, isMapReady]);
+  }, [selectedChildFocusKey, selectedChild, childList, routeHistory, safeZones, isMapReady]);
 
   // ── Selected child detail rows ───────────────────────────────────────────────
   const selectedChildDetails = selectedChild
@@ -322,7 +330,7 @@ export function LiveLocationMap({
         </div>
 
         {/* Route history card — bottom left, only when children are connected */}
-        {children.length > 0 && (
+        {childList.length > 0 && (
         <div className="absolute bottom-3 left-3 z-10 w-52 rounded-xl border border-neutral-200/80 bg-white/95 p-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] backdrop-blur-sm dark:border-white/[0.08] dark:bg-neutral-900/95">
           <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.07em] text-neutral-400 dark:text-neutral-600">
             Route history
@@ -341,7 +349,7 @@ export function LiveLocationMap({
         )}
 
         {/* Hint — top right, only when children are connected */}
-        {children.length > 0 && (
+        {childList.length > 0 && (
         <div className="absolute right-3 top-3 z-10 rounded-lg border border-neutral-200/80 bg-white/95 px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.05)] backdrop-blur-sm dark:border-white/[0.08] dark:bg-neutral-900/95">
           <p className="text-[11px] text-neutral-400 dark:text-neutral-600">
             Click marker for live status

@@ -1,10 +1,10 @@
 import { alerts, children, getDb } from "@guardiansense/db";
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
+import { desc, eq, inArray } from "drizzle-orm";
+import { NextResponse } from "next/server";
 
 import { getAuthenticatedParentFromSession } from "@/lib/auth/get-authenticated-parent-from-session";
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   const authenticatedParent = await getAuthenticatedParentFromSession();
   if (!authenticatedParent) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

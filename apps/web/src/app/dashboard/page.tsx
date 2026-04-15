@@ -18,7 +18,7 @@ export default async function DashboardPage({
     <ParentDashboard
       parentId={data.parentId}
       isTelegramLinked={data.isTelegramLinked}
-      children={data.children}
+      childList={data.children}
       recentEvents={data.recentEvents}
       safeZones={data.safeZones}
       initialSelectedChildId={initialChildId ?? null}

@@ -99,7 +99,7 @@ export function AlertsInbox() {
         </div>
       ) : alertList.length === 0 ? (
         <div className="rounded-[24px] border border-dashed border-slate-300 bg-white/50 p-5 text-sm text-slate-500 dark:border-white/10 dark:bg-black/20 dark:text-slate-400">
-          No alerts yet. When a child triggers a zone, battery, or speed event you'll see it here.
+          No alerts yet. When a child triggers a zone, battery, or speed event you&apos;ll see it here.
         </div>
       ) : (
         <div className="grid gap-3">

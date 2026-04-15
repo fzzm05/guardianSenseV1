@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import {Download, Cloud, MapPin, Bell, ShieldCheck, XCircle} from "lucide-react";
+import {Download} from "lucide-react";
 
-import { AuthPanel } from "@/components/auth/auth-panel";
 import { SiteFooter } from "@/components/site-footer";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -57,7 +56,7 @@ export default function Home() {
         </h1>
 
         <p className="mx-auto mt-5 max-w-xl text-[17px] leading-7 text-neutral-500 dark:text-neutral-400">
-          GuardianSense pairs with your child's device to deliver live location tracking, zone alerts, battery warnings, and Telegram push notifications — in one clean dashboard.
+          GuardianSense pairs with your child&apos;s device to deliver live location tracking, zone alerts, battery warnings, and Telegram push notifications — in one clean dashboard.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -141,7 +140,7 @@ export default function Home() {
       {/* ── Features ───────────────────────────────────────────────── */}
       <section id="features" className="mx-auto max-w-[1200px] px-5 pb-20">
         <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-600">Features</p>
-        <h2 className="mb-10 text-center text-[28px] font-semibold tracking-[-0.02em] text-neutral-900 dark:text-white">Everything you need, nothing you don't.</h2>
+        <h2 className="mb-10 text-center text-[28px] font-semibold tracking-[-0.02em] text-neutral-900 dark:text-white">Everything you need, nothing you don&apos;t.</h2>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
@@ -231,7 +230,7 @@ export default function Home() {
                 GuardianSense for Android
               </h2>
               <p className="mb-6 text-[14px] leading-7 text-neutral-500 dark:text-neutral-400">
-                Install the lightweight companion app on your child's Android device. It runs quietly in the background — sending location, battery, and zone data to your dashboard in real-time.
+                Install the lightweight companion app on your child&apos;s Android device. It runs quietly in the background — sending location, battery, and zone data to your dashboard in real-time.
               </p>
 
               <ul className="mb-8 space-y-2 text-[13px] text-neutral-500 dark:text-neutral-400">
@@ -268,7 +267,7 @@ export default function Home() {
                 className="rounded-xl border border-neutral-200 dark:border-white/[0.07]"
               />
               <p className="text-center text-[12px] text-neutral-400 dark:text-neutral-600">
-                Scan with your child's phone<br />to download the APK instantly
+                Scan with your child&apos;s phone<br />to download the APK instantly
               </p>
             </div>
           </div>

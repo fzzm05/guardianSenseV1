@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 
 export const metadata: Metadata = {
   title: "Safe Zones",

@@ -11,7 +11,7 @@ type ExistingChild = {
 
 type PairDevicePanelProps = {
   idToken?: string;
-  children: ExistingChild[];
+  existingChildren: ExistingChild[];
 };
 
 type PairingCodeResponse = {
@@ -30,10 +30,10 @@ function getErrorMessage(error: unknown) {
   return "Something went wrong.";
 }
 
-export function PairDevicePanel({ idToken, children }: PairDevicePanelProps) {
+export function PairDevicePanel({ idToken, existingChildren }: PairDevicePanelProps) {
   const [mode, setMode] = useState<PairingMode>("new-child");
   const [childName, setChildName] = useState("");
-  const [selectedChildId, setSelectedChildId] = useState<string>(children[0]?.id ?? "");
+  const [selectedChildId, setSelectedChildId] = useState<string>(existingChildren[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pairingResult, setPairingResult] = useState<PairingCodeResponse | null>(null);
@@ -161,9 +161,9 @@ export function PairDevicePanel({ idToken, children }: PairDevicePanelProps) {
                 className="w-full rounded-lg border border-neutral-200/80 bg-white px-3 py-2.5 text-[13px] text-neutral-900 outline-none transition focus:border-neutral-400 focus:ring-2 focus:ring-neutral-200 dark:border-white/[0.07] dark:bg-neutral-800 dark:text-white dark:focus:border-white/20 dark:focus:ring-white/[0.06]"
               >
                 <option value="">
-                  {children.length === 0 ? "No children available yet" : "Select a child…"}
+                  {existingChildren.length === 0 ? "No children available yet" : "Select a child…"}
                 </option>
-                {children.map((child) => (
+                {existingChildren.map((child) => (
                   <option key={child.id} value={child.id}>
                     {child.displayName}
                   </option>
@@ -174,7 +174,7 @@ export function PairDevicePanel({ idToken, children }: PairDevicePanelProps) {
 
           <button
             type="submit"
-            disabled={loading || (mode === "existing-child" && children.length === 0)}
+            disabled={loading || (mode === "existing-child" && existingChildren.length === 0)}
             className="w-full rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[13px] font-medium text-emerald-800 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-500/25 dark:bg-emerald-500/[0.08] dark:text-emerald-300 dark:hover:bg-emerald-500/[0.12]"
           >
             {loading

@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { RouteHistoryPoint } from "@/components/dashboard/live-location-map";
-import { LocalTime } from "@/components/dashboard/local-time";
 import { type SafeZone } from "@/components/dashboard/safe-zones-panel";
 import { TelegramAlerts } from "@/components/dashboard/telegram-alerts";
 import { createClient as createSupabaseClient } from "@/lib/supabase/client";
@@ -48,7 +47,7 @@ type ParentDashboardProps = {
   parentId: string;
   isTelegramLinked: boolean;
   initialSelectedChildId?: string | null;
-  children: ChildSummary[];
+  childList: ChildSummary[];
   recentEvents: ChildTimelineEvent[];
   safeZones: SafeZone[];
 };
@@ -87,22 +86,19 @@ export function ParentDashboard({
   parentId,
   isTelegramLinked,
   initialSelectedChildId = null,
-  children,
-  recentEvents,
+  childList,
   safeZones,
 }: ParentDashboardProps) {
-  const [liveChildren, setLiveChildren] = useState(children);
+  const [liveChildren, setLiveChildren] = useState(childList);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(initialSelectedChildId);
   const [selectedChildFocusKey, setSelectedChildFocusKey] = useState("initial");
-  const [liveRecentEvents, setLiveRecentEvents] = useState(recentEvents);
   const [historyWindowHours, setHistoryWindowHours] = useState<(typeof historyWindowOptions)[number]>(6);
   const [routeHistory, setRouteHistory] = useState<RouteHistoryPoint[]>([]);
   const [routeHistoryLoading, setRouteHistoryLoading] = useState(false);
   const liveChildrenRef = useRef(liveChildren);
   const childIdSignature = liveChildren.map((c) => c.id).sort().join(",");
 
-  useEffect(() => { setLiveChildren(children); }, [children]);
-  useEffect(() => { setLiveRecentEvents(recentEvents); }, [recentEvents]);
+  useEffect(() => { setLiveChildren(childList); }, [childList]);
   useEffect(() => { liveChildrenRef.current = liveChildren; }, [liveChildren]);
 
   useEffect(() => {
@@ -129,8 +125,8 @@ export function ParentDashboard({
             : c,
         ),
       );
-    } catch (e) {
-      console.log("[realtime] failed to refresh child device status:", e);
+    } catch (err) {
+      console.log("[realtime] failed to refresh child device status:", err);
     }
   });
 
@@ -177,7 +173,7 @@ export function ParentDashboard({
       })
       .subscribe();
     return () => { void supabase.removeChannel(ch); };
-  }, [parentId, refreshChildDeviceStatus]);
+  }, [parentId]);
 
   useEffect(() => {
     const childIds = childIdSignature ? childIdSignature.split(",") : [];
@@ -203,7 +199,6 @@ export function ParentDashboard({
           const ne = payload.new as RealtimeChildEventRow;
           const child = liveChildrenRef.current.find((c) => c.id === ne.child_id);
           if (!child) return;
-          setLiveRecentEvents((cur) => [{ id: ne.id, childId: ne.child_id, childDisplayName: child.displayName, type: ne.type, title: ne.title, detail: ne.detail, createdAt: ne.created_at }, ...cur.filter((e) => e.id !== ne.id)].slice(0, 20));
         })
         .subscribe();
 
@@ -216,7 +211,6 @@ export function ParentDashboard({
   const onlineCount = liveChildren.filter((c) => getDevicePresenceTone(c) === "online").length;
   const staleCount = liveChildren.filter((c) => getDevicePresenceTone(c) === "stale").length;
   const dangerCount = liveChildren.filter((c) => c.status === "danger").length;
-  const activeZonesCount = safeZones.filter((z) => z.isActive).length;
 
   return (
     <main className="flex h-full flex-col overflow-hidden bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
@@ -353,7 +347,7 @@ export function ParentDashboard({
         {/* Map */}
         <section className="relative flex min-h-0 flex-1 flex-col">
           <LiveLocationMap
-            children={liveChildren}
+            childList={liveChildren}
             selectedChild={selectedChild}
             routeHistory={routeHistory}
             routeHistoryHours={historyWindowHours}

@@ -57,13 +57,12 @@ type AlertContext = {
     nextStatus: string;
   };
 };
+<<<<<<< Updated upstream
 
 export async function POST(request: NextRequest) {
   const requestStartedAt = performance.now();
-
   try {
     let body: unknown;
-
     try {
       body = await request.json();
     } catch {
@@ -73,7 +72,6 @@ export async function POST(request: NextRequest) {
     const input = createLocationEventInputSchema.parse(
       normalizeLocationEventRequest(body),
     );
-    const parseCompletedAt = performance.now();
 
     const authenticatedDevice = await getAuthenticatedDevice(request);
 
@@ -122,7 +120,6 @@ export async function POST(request: NextRequest) {
         .leftJoin(parentSettings, eq(parentSettings.parentId, children.parentId))
         .where(eq(children.id, input.childId))
         .limit(1);
-      const childLookupCompletedAt = performance.now();
 
       if (!child) {
         throw new RouteError("Child not found.", 404);
@@ -146,11 +143,10 @@ export async function POST(request: NextRequest) {
             ),
           )
           .limit(1);
-        
+
         if (!device) {
           throw new RouteError("Device does not belong to this child.", 409);
         }
-        
         previousIsCharging = device.isCharging;
       }
 
@@ -171,7 +167,7 @@ export async function POST(request: NextRequest) {
             eq(geofences.isActive, true),
           ),
         );
-      const zoneQueryCompletedAt = performance.now();
+
       const zoneMatch = determineCurrentZone(activeZones, input.point.latitude, input.point.longitude);
       const nextStatus = deriveChildStatus(input, zoneMatch?.severity ?? null);
       const urgentUpdate = isUrgentLocationUpdate(input, nextStatus);
@@ -196,7 +192,6 @@ export async function POST(request: NextRequest) {
           id: locationEvents.id,
           createdAt: locationEvents.createdAt,
         });
-      const locationInsertCompletedAt = performance.now();
 
       if (!event) {
         throw new RouteError("Failed to store location event.", 500);
@@ -223,7 +218,6 @@ export async function POST(request: NextRequest) {
           })
           .where(eq(children.id, input.childId));
       }
-      const childSnapshotCompletedAt = performance.now();
 
       if (input.deviceId) {
         const hasDeviceMetadataUpdate = Boolean(
@@ -351,6 +345,8 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      console.log("[location-events] transaction completed in:", roundDuration(performance.now() - transactionStartedAt), "ms");
+
       return {
         result: {
           eventId: event.id,
@@ -407,9 +403,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function roundDuration(value: number) {
-  return Number(value.toFixed(1));
+function roundDuration(ms: number) {
+  return Math.round(ms * 100) / 100;
 }
+
 
 function normalizeLocationEventRequest(body: unknown) {
   if (typeof body !== "object" || body === null) {
@@ -684,58 +681,6 @@ function determineCurrentZone(
   return containingZones[0] ?? null;
 }
 
-function logZoneEvaluation({
-  childId,
-  latitude,
-  longitude,
-  zones,
-  zoneMatch,
-}: {
-  childId: string;
-  latitude: number;
-  longitude: number;
-  zones: ZoneCandidate[];
-  zoneMatch:
-    | (ZoneCandidate & {
-        distanceMeters: number;
-      })
-    | null;
-}) {
-  const zoneDistances = zones.map((zone) => {
-    const distanceMeters = calculateDistanceMeters(
-      zone.centerLatitude,
-      zone.centerLongitude,
-      latitude,
-      longitude,
-    );
-
-    return {
-      id: zone.id,
-      label: zone.label,
-      severity: zone.severity,
-      radiusMeters: zone.radiusMeters,
-      distanceMeters: Number(distanceMeters.toFixed(2)),
-      inside: distanceMeters <= zone.radiusMeters,
-    };
-  });
-
-  console.log("[zones] evaluated location against active zones:", {
-    childId,
-    point: {
-      latitude,
-      longitude,
-    },
-    zoneDistances,
-    selectedZone: zoneMatch
-      ? {
-          id: zoneMatch.id,
-          label: zoneMatch.label,
-          severity: zoneMatch.severity,
-          distanceMeters: Number(zoneMatch.distanceMeters.toFixed(2)),
-        }
-      : null,
-  });
-}
 
 function getZoneSeverityRank(severity: "safe" | "caution" | "danger") {
   switch (severity) {

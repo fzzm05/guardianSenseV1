@@ -3,17 +3,12 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { 
   User, 
-  Settings, 
   Users, 
   Link as LinkIcon, 
   Trash2, 
   X, 
-  Check, 
   Loader2, 
-  AlertTriangle,
-  Bell,
-  Cpu,
-  Smartphone
+  Bell
 } from "lucide-react";
 
 type SettingsData = {
@@ -42,7 +37,6 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [data, setData] = useState<SettingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null); // field name being saved
-  const [error, setError] = useState<string | null>(null);
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -50,8 +44,8 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       const res = await fetch("/api/parent/settings/full");
       const d = await res.json();
       setData(d);
-    } catch (err) {
-      setError("Failed to load settings");
+    } catch {
+      // Failed to load
     } finally {
       setLoading(false);
     }
@@ -76,7 +70,6 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       // Wait a bit to show success state
       setTimeout(() => setSaving(null), 1000);
     } catch {
-      setError("Failed to save changes");
       setSaving(null);
     }
   };
@@ -93,7 +86,6 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       setData(prev => prev ? { ...prev, profile: { ...prev.profile, ...updates } } : null);
       setTimeout(() => setSaving(null), 1000);
     } catch {
-      setError("Failed to save settings");
       setSaving(null);
     }
   };
@@ -113,7 +105,6 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       } : null);
       setTimeout(() => setSaving(null), 1000);
     } catch {
-      setError("Failed to update child info");
       setSaving(null);
     }
   };
@@ -128,7 +119,6 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         window.location.href = "/";
       }
     } catch {
-      setError("Failed to delete account");
       setLoading(false);
     }
   };
@@ -221,12 +211,11 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                   <NotificationSettings 
                     profile={data.profile} 
                     onUpdate={updateSettings} 
-                    saving={saving} 
                   />
                 )}
                 {activeTab === "children" && (
                   <ChildrenSettings 
-                    children={data.children} 
+                    childList={data.children} 
                     onUpdate={updateChild} 
                     saving={saving} 
                   />
@@ -235,7 +224,6 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                   <IntegrationsSettings 
                     profile={data.profile} 
                     onUpdate={updateSettings} 
-                    saving={saving} 
                   />
                 )}
                 {activeTab === "advanced" && (
@@ -353,11 +341,9 @@ function AccountSettings({
 function NotificationSettings({ 
   profile, 
   onUpdate, 
-  saving 
 }: { 
   profile: SettingsData["profile"]; 
   onUpdate: (u: Partial<SettingsData["profile"]>) => void;
-  saving: string | null;
 }) {
   return (
     <div className="space-y-8">
@@ -423,17 +409,17 @@ function NotificationSettings({
 // ─── Children Settings ───────────────────────────────────────────────────────
 
 function ChildrenSettings({ 
-  children, 
+  childList, 
   onUpdate, 
   saving 
 }: { 
-  children: SettingsData["children"]; 
+  childList: SettingsData["children"]; 
   onUpdate: (id: string, u: Partial<SettingsData["children"][0]>) => void;
   saving: string | null;
 }) {
   return (
     <div className="space-y-8">
-      {children.map(child => (
+      {childList.map(child => (
         <Section 
           key={child.id} 
           title={child.displayName} 
@@ -459,7 +445,7 @@ function ChildrenSettings({
         </Section>
       ))}
 
-      {children.length === 0 && (
+      {childList.length === 0 && (
         <div className="py-12 text-center text-sm text-neutral-400">
           No children registered yet. Pair a device to start.
         </div>
@@ -473,11 +459,9 @@ function ChildrenSettings({
 function IntegrationsSettings({ 
   profile, 
   onUpdate, 
-  saving 
 }: { 
   profile: SettingsData["profile"]; 
   onUpdate: (u: Partial<SettingsData["profile"]>) => void;
-  saving: string | null;
 }) {
   return (
     <div className="space-y-8">

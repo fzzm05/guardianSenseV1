@@ -1,11 +1,10 @@
 import { Metadata } from "next";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { LocalTime } from "@/components/dashboard/local-time";
+import { loadParentDashboardData } from "@/lib/dashboard/load-parent-dashboard-data";
 
 export const metadata: Metadata = {
   title: "Activity History",
 };
-import { LocalTime } from "@/components/dashboard/local-time";
-import { loadParentDashboardData } from "@/lib/dashboard/load-parent-dashboard-data";
 
 export default async function ActivityPage() {
   const data = await loadParentDashboardData();

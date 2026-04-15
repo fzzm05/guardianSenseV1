@@ -1,9 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { getFirebaseAuth } from "@/lib/firebase/client";
@@ -30,16 +29,11 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Auto-detect active route from pathname
   const activeRoute = routeItems.find(item => item.href === pathname)?.id ?? "overview";
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   async function handleLogout() {
     await fetch("/api/session/logout", { method: "POST" });
@@ -47,9 +41,6 @@ export function DashboardHeader({
     router.replace("/");
   }
 
-  function toggleTheme() {
-    setTheme(theme === "dark" ? "light" : "dark");
-  }
 
   return (
     <header className="relative z-40 flex items-center justify-between gap-3 border rounded-2xl border-neutral-200/80 bg-white/95 px-3 py-2 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl dark:border-white/[0.07] dark:bg-neutral-950/75 dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]">
