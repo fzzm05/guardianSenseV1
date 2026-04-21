@@ -135,6 +135,13 @@ export function LiveLocationMap({
   const lastAppliedViewportKeyRef = useRef<string | null>(null);
   const lastFocusedChildKeyRef = useRef<string | null>(null);
 
+  const clearMapLayers = () => {
+    markersRef.current.forEach((marker) => marker.setMap(null));
+    safeZonesRef.current.forEach((zone) => zone.setMap(null));
+    routeLineRef.current?.setMap(null);
+    routePointsRef.current.forEach((point) => point.setMap(null));
+  };
+
   // ── Init map ────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -162,18 +169,7 @@ export function LiveLocationMap({
 
     return () => {
       popupRef.current?.close();
-      
-      // Capture ref values for safe cleanup
-      const markers = markersRef.current;
-      const safeZones = safeZonesRef.current;
-      const routeLine = routeLineRef.current;
-      const routePoints = routePointsRef.current;
-
-      markers.forEach((m) => m.setMap(null));
-      safeZones.forEach((z) => z.setMap(null));
-      if (routeLine) routeLine.setMap(null);
-      routePoints.forEach((p) => p.setMap(null));
-
+      clearMapLayers();
       routePointZoomListenerRef.current?.remove();
       routePointZoomListenerRef.current = null;
       mapRef.current = null;

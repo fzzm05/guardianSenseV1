@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { RouteHistoryPoint } from "@/components/dashboard/live-location-map";
 import { type SafeZone } from "@/components/dashboard/safe-zones-panel";
@@ -82,6 +83,10 @@ type RouteHistoryResponse = {
 
 const historyWindowOptions = [1, 3, 6, 12] as const;
 
+type ChildRealtimePayload = RealtimePostgresChangesPayload<RealtimeChildRow>;
+type DeviceStatusRealtimePayload = RealtimePostgresChangesPayload<RealtimeDeviceStatusRow>;
+type ChildEventRealtimePayload = RealtimePostgresChangesPayload<RealtimeChildEventRow>;
+
 export function ParentDashboard({
   parentId,
   isTelegramLinked,
@@ -154,16 +159,16 @@ export function ParentDashboard({
     const supabase = createSupabaseClient();
     const ch = supabase
       .channel(`parent-children-${parentId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "children", filter: `parent_id=eq.${parentId}` }, (payload: any) => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "children", filter: `parent_id=eq.${parentId}` }, (payload: ChildRealtimePayload) => {
         if (payload.eventType === "INSERT") {
-          const inserted = mapRealtimeChild(payload.new as RealtimeChildRow);
+          const inserted = mapRealtimeChild(payload.new);
           setLiveChildren((cur) => {
             if (cur.some((c) => c.id === inserted.id)) return cur;
             return [{ ...inserted, platform: null, deviceName: null, appVersion: null, osVersion: null, batteryLevel: null, isCharging: null, networkType: null, speedMetersPerSecond: null, locationSource: null } as ChildSummary, ...cur];
           });
           void refreshChildDeviceStatus(inserted.id);
         } else if (payload.eventType === "UPDATE") {
-          const updated = mapRealtimeChild(payload.new as RealtimeChildRow);
+          const updated = mapRealtimeChild(payload.new);
           setLiveChildren((cur) => cur.map((c) => c.id === updated.id ? { ...c, ...updated } : c));
           void refreshChildDeviceStatus(updated.id);
         } else if (payload.eventType === "DELETE") {
@@ -182,21 +187,21 @@ export function ParentDashboard({
     const channels = childIds.flatMap((childId) => {
       const dsCh = supabase
         .channel(`parent-device-status-${parentId}-${childId}`)
-        .on("postgres_changes", { event: "*", schema: "public", table: "device_status", filter: `child_id=eq.${childId}` }, (payload: any) => {
+        .on("postgres_changes", { event: "*", schema: "public", table: "device_status", filter: `child_id=eq.${childId}` }, (payload: DeviceStatusRealtimePayload) => {
           if (payload.eventType === "DELETE") {
             const id = (payload.old as { child_id?: string }).child_id;
             if (id) setLiveChildren((cur) => cur.map((c) => c.id === id ? { ...c, batteryLevel: null, isCharging: null, networkType: null, speedMetersPerSecond: null, locationSource: null } : c));
             return;
           }
-          const ns = payload.new as RealtimeDeviceStatusRow;
+          const ns = payload.new;
           setLiveChildren((cur) => cur.map((c) => c.id === ns.child_id ? { ...c, batteryLevel: ns.battery_level, isCharging: ns.is_charging, networkType: ns.network_type, speedMetersPerSecond: ns.speed_meters_per_second, locationSource: ns.source, deviceLastSeenAt: ns.last_seen_at, appVersion: ns.app_version, osVersion: ns.os_version } : c));
         })
         .subscribe();
 
       const evCh = supabase
         .channel(`parent-child-events-${parentId}-${childId}`)
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "child_events", filter: `child_id=eq.${childId}` }, (payload: any) => {
-          const ne = payload.new as RealtimeChildEventRow;
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "child_events", filter: `child_id=eq.${childId}` }, (payload: ChildEventRealtimePayload) => {
+          const ne = payload.new;
           const child = liveChildrenRef.current.find((c) => c.id === ne.child_id);
           if (!child) return;
         })
