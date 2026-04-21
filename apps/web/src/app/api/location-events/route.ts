@@ -444,9 +444,11 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    if (pendingAlert) {
+    const alertToSend = pendingAlert;
+
+    if (alertToSend !== null) {
       console.log("[location-events] delivering pending telegram alerts outside transaction");
-      await sendTelegramAlerts(pendingAlert.chatId, pendingAlert.events, pendingAlert.ctx);
+      await sendTelegramAlerts(alertToSend.chatId, alertToSend.events, alertToSend.ctx);
     }
 
     console.log("[location-events] request total ms:", {
@@ -997,4 +999,3 @@ async function sendTelegramAlerts(
     }
   }
 }
-
