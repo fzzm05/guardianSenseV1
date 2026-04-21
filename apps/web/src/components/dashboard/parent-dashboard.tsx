@@ -201,6 +201,9 @@ export function ParentDashboard({
       const evCh = supabase
         .channel(`parent-child-events-${parentId}-${childId}`)
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "child_events", filter: `child_id=eq.${childId}` }, (payload: ChildEventRealtimePayload) => {
+          if (!isRealtimeChildEventRow(payload.new)) {
+            return;
+          }
           const ne = payload.new;
           const child = liveChildrenRef.current.find((c) => c.id === ne.child_id);
           if (!child) return;
@@ -485,4 +488,12 @@ function getDevicePresenceTone(child: ChildSummary): "online" | "recent" | "stal
 
 function getChildInitial(displayName: string) {
   return displayName.trim().charAt(0).toUpperCase() || "C";
+}
+
+function isRealtimeChildEventRow(value: unknown): value is RealtimeChildEventRow {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return "child_id" in value;
 }

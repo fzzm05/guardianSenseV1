@@ -29,6 +29,21 @@ class RouteError extends Error {
   }
 }
 
+type PendingAlert = {
+  chatId: string;
+  events: { type: string; title: string; detail: string | null }[];
+  ctx: {
+    childId: string;
+    childName: string;
+    batteryLevel: number | null;
+    isCharging: boolean | null;
+    speedMetersPerSecond: number | null;
+    latitude: number;
+    longitude: number;
+    nextStatus: string;
+  };
+};
+
 const MIN_SNAPSHOT_MOVEMENT_METERS = 20;
 const MAX_SNAPSHOT_INTERVAL_MS = 30_000;
 const URGENT_BATTERY_LEVEL = 0.12;
@@ -85,23 +100,9 @@ export async function POST(request: NextRequest) {
 
     const db = getDb();
 
-    let pendingAlert: {
-      chatId: string;
-      events: { type: string; title: string; detail: string | null }[];
-      ctx: {
-        childId: string;
-        childName: string;
-        batteryLevel: number | null;
-        isCharging: boolean | null;
-        speedMetersPerSecond: number | null;
-        latitude: number;
-        longitude: number;
-        nextStatus: string;
-      };
-    } | null = null;
-
-    const result = await db.transaction(async (tx) => {
+    const transactionResult = await db.transaction(async (tx) => {
       const transactionStartedAt = performance.now();
+      let pendingAlert: PendingAlert | null = null;
       const [child] = await tx
         .select({
           id: children.id,
@@ -431,24 +432,27 @@ export async function POST(request: NextRequest) {
       }
 
       return {
-        eventId: event.id,
-        childId: input.childId,
-        deviceId: input.deviceId ?? null,
-        snapshotUpdated: shouldRefreshChildReadModel,
-        snapshotReason: snapshotDecision.reason,
-        urgentUpdate,
-        nextStatus,
-        currentZoneLabel: zoneMatch?.label ?? null,
-        recordedAt: recordedAt.toISOString(),
-        createdAt: event.createdAt.toISOString(),
+        result: {
+          eventId: event.id,
+          childId: input.childId,
+          deviceId: input.deviceId ?? null,
+          snapshotUpdated: shouldRefreshChildReadModel,
+          snapshotReason: snapshotDecision.reason,
+          urgentUpdate,
+          nextStatus,
+          currentZoneLabel: zoneMatch?.label ?? null,
+          recordedAt: recordedAt.toISOString(),
+          createdAt: event.createdAt.toISOString(),
+        },
+        pendingAlert,
       };
     });
 
-    const alertToSend = pendingAlert;
+    const { result, pendingAlert } = transactionResult;
 
-    if (alertToSend !== null) {
+    if (pendingAlert !== null) {
       console.log("[location-events] delivering pending telegram alerts outside transaction");
-      await sendTelegramAlerts(alertToSend.chatId, alertToSend.events, alertToSend.ctx);
+      await sendTelegramAlerts(pendingAlert.chatId, pendingAlert.events, pendingAlert.ctx);
     }
 
     console.log("[location-events] request total ms:", {
