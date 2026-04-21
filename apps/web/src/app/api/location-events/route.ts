@@ -43,26 +43,12 @@ function isZodError(error: unknown): error is z.ZodError {
   );
 }
 
-type AlertContext = {
-  chatId: string;
-  events: Array<{ type: string; title: string; detail: string | null }>;
-  ctx: {
-    childId: string;
-    childName: string;
-    batteryLevel: number | null;
-    isCharging: boolean | null;
-    speedMetersPerSecond: number | null;
-    latitude: number;
-    longitude: number;
-    nextStatus: string;
-  };
-};
-<<<<<<< Updated upstream
-
 export async function POST(request: NextRequest) {
   const requestStartedAt = performance.now();
+
   try {
     let body: unknown;
+
     try {
       body = await request.json();
     } catch {
@@ -72,6 +58,7 @@ export async function POST(request: NextRequest) {
     const input = createLocationEventInputSchema.parse(
       normalizeLocationEventRequest(body),
     );
+    const parseCompletedAt = performance.now();
 
     const authenticatedDevice = await getAuthenticatedDevice(request);
 
@@ -98,10 +85,23 @@ export async function POST(request: NextRequest) {
 
     const db = getDb();
 
-    const { result, pendingAlert } = await db.transaction(async (tx) => {
-      const transactionStartedAt = performance.now();
-      let alert: AlertContext | null = null;
+    let pendingAlert: {
+      chatId: string;
+      events: { type: string; title: string; detail: string | null }[];
+      ctx: {
+        childId: string;
+        childName: string;
+        batteryLevel: number | null;
+        isCharging: boolean | null;
+        speedMetersPerSecond: number | null;
+        latitude: number;
+        longitude: number;
+        nextStatus: string;
+      };
+    } | null = null;
 
+    const result = await db.transaction(async (tx) => {
+      const transactionStartedAt = performance.now();
       const [child] = await tx
         .select({
           id: children.id,
@@ -120,6 +120,7 @@ export async function POST(request: NextRequest) {
         .leftJoin(parentSettings, eq(parentSettings.parentId, children.parentId))
         .where(eq(children.id, input.childId))
         .limit(1);
+      const childLookupCompletedAt = performance.now();
 
       if (!child) {
         throw new RouteError("Child not found.", 404);
@@ -143,10 +144,16 @@ export async function POST(request: NextRequest) {
             ),
           )
           .limit(1);
+        console.log("[location-events] device ownership lookup ms:", {
+          childId: input.childId,
+          deviceId: input.deviceId,
+          durationMs: roundDuration(performance.now() - childLookupCompletedAt),
+        });
 
         if (!device) {
           throw new RouteError("Device does not belong to this child.", 409);
         }
+        
         previousIsCharging = device.isCharging;
       }
 
@@ -167,8 +174,15 @@ export async function POST(request: NextRequest) {
             eq(geofences.isActive, true),
           ),
         );
-
+      const zoneQueryCompletedAt = performance.now();
       const zoneMatch = determineCurrentZone(activeZones, input.point.latitude, input.point.longitude);
+      logZoneEvaluation({
+        childId: input.childId,
+        latitude: input.point.latitude,
+        longitude: input.point.longitude,
+        zones: activeZones,
+        zoneMatch,
+      });
       const nextStatus = deriveChildStatus(input, zoneMatch?.severity ?? null);
       const urgentUpdate = isUrgentLocationUpdate(input, nextStatus);
       const nextZoneLabel = zoneMatch?.label ?? null;
@@ -192,6 +206,7 @@ export async function POST(request: NextRequest) {
           id: locationEvents.id,
           createdAt: locationEvents.createdAt,
         });
+      const locationInsertCompletedAt = performance.now();
 
       if (!event) {
         throw new RouteError("Failed to store location event.", 500);
@@ -218,6 +233,7 @@ export async function POST(request: NextRequest) {
           })
           .where(eq(children.id, input.childId));
       }
+      const childSnapshotCompletedAt = performance.now();
 
       if (input.deviceId) {
         const hasDeviceMetadataUpdate = Boolean(
@@ -234,6 +250,7 @@ export async function POST(request: NextRequest) {
             })
             .where(eq(childDevices.id, input.deviceId));
         }
+        const childDeviceUpdateCompletedAt = performance.now();
 
         await tx
           .insert(deviceStatus)
@@ -267,6 +284,7 @@ export async function POST(request: NextRequest) {
               updatedAt: new Date(),
             },
           });
+        const deviceStatusUpsertCompletedAt = performance.now();
 
         const timelineEvents = buildChildTimelineEvents({
           childId: input.childId,
@@ -277,42 +295,15 @@ export async function POST(request: NextRequest) {
           nextIsCharging: input.telemetry?.isCharging ?? null,
         });
 
-        if (timelineEvents.length > 0) {
-          const insertedTimelineEvents = await tx
-            .insert(childEvents)
-            .values(timelineEvents)
-            .returning({
-              id: childEvents.id,
-              type: childEvents.type,
-              title: childEvents.title,
-              detail: childEvents.detail,
-            });
-
-          if (child.telegramChatId && child.pushAlertsEnabled) {
-            alert = {
-              chatId: child.telegramChatId,
-              events: insertedTimelineEvents,
-              ctx: {
-                childId: child.id,
-                childName: child.displayName,
-                batteryLevel: input.telemetry?.batteryLevel ?? null,
-                isCharging: input.telemetry?.isCharging ?? null,
-                speedMetersPerSecond: input.point.speedMetersPerSecond ?? null,
-                latitude: input.point.latitude,
-                longitude: input.point.longitude,
-                nextStatus,
-              },
-            };
-          }
-        }
-      } else {
-        const timelineEvents = buildChildTimelineEvents({
+        console.log("[child-events] derived timeline events:", {
           childId: input.childId,
           previousZoneLabel: child.currentZoneLabel ?? null,
           nextZoneLabel,
           nextZoneSeverity: zoneMatch?.severity ?? null,
-          previousIsCharging: null,
-          nextIsCharging: null,
+          previousIsCharging,
+          nextIsCharging: input.telemetry?.isCharging ?? null,
+          eventCount: timelineEvents.length,
+          eventTypes: timelineEvents.map((timelineEvent) => timelineEvent.type),
         });
 
         if (timelineEvents.length > 0) {
@@ -326,8 +317,16 @@ export async function POST(request: NextRequest) {
               detail: childEvents.detail,
             });
 
+          console.log("[child-events] inserted timeline events:", {
+            childId: input.childId,
+            insertedCount: insertedTimelineEvents.length,
+            insertedEventTypes: insertedTimelineEvents.map(
+              (insertedTimelineEvent) => insertedTimelineEvent.type,
+            ),
+          });
+
           if (child.telegramChatId && child.pushAlertsEnabled) {
-            alert = {
+            pendingAlert = {
               chatId: child.telegramChatId,
               events: insertedTimelineEvents,
               ctx: {
@@ -343,24 +342,105 @@ export async function POST(request: NextRequest) {
             };
           }
         }
+
+        console.log("[location-events] transaction timing ms:", {
+          childId: input.childId,
+          deviceId: input.deviceId,
+          parseMs: roundDuration(parseCompletedAt - requestStartedAt),
+          childLookupMs: roundDuration(childLookupCompletedAt - transactionStartedAt),
+          zoneQueryMs: roundDuration(zoneQueryCompletedAt - childLookupCompletedAt),
+          locationInsertMs: roundDuration(locationInsertCompletedAt - zoneQueryCompletedAt),
+          childSnapshotMs: roundDuration(childSnapshotCompletedAt - locationInsertCompletedAt),
+          childDeviceUpdateMs: roundDuration(
+            childDeviceUpdateCompletedAt - childSnapshotCompletedAt,
+          ),
+          deviceStatusUpsertMs: roundDuration(
+            deviceStatusUpsertCompletedAt - childDeviceUpdateCompletedAt,
+          ),
+          childEventsMs: roundDuration(performance.now() - deviceStatusUpsertCompletedAt),
+          transactionTotalMs: roundDuration(performance.now() - transactionStartedAt),
+        });
+      } else {
+        const timelineEvents = buildChildTimelineEvents({
+          childId: input.childId,
+          previousZoneLabel: child.currentZoneLabel ?? null,
+          nextZoneLabel,
+          nextZoneSeverity: zoneMatch?.severity ?? null,
+          previousIsCharging: null,
+          nextIsCharging: null,
+        });
+
+        console.log("[child-events] derived timeline events:", {
+          childId: input.childId,
+          previousZoneLabel: child.currentZoneLabel ?? null,
+          nextZoneLabel,
+          nextZoneSeverity: zoneMatch?.severity ?? null,
+          previousIsCharging: null,
+          nextIsCharging: null,
+          eventCount: timelineEvents.length,
+          eventTypes: timelineEvents.map((timelineEvent) => timelineEvent.type),
+        });
+
+        if (timelineEvents.length > 0) {
+          const insertedTimelineEvents = await tx
+            .insert(childEvents)
+            .values(timelineEvents)
+            .returning({
+              id: childEvents.id,
+              type: childEvents.type,
+              title: childEvents.title,
+              detail: childEvents.detail,
+            });
+
+          console.log("[child-events] inserted timeline events:", {
+            childId: input.childId,
+            insertedCount: insertedTimelineEvents.length,
+            insertedEventTypes: insertedTimelineEvents.map(
+              (insertedTimelineEvent) => insertedTimelineEvent.type,
+            ),
+          });
+          if (child.telegramChatId && child.pushAlertsEnabled) {
+            pendingAlert = {
+              chatId: child.telegramChatId,
+              events: insertedTimelineEvents,
+              ctx: {
+                childId: child.id,
+                childName: child.displayName,
+                batteryLevel: input.telemetry?.batteryLevel ?? null,
+                isCharging: input.telemetry?.isCharging ?? null,
+                speedMetersPerSecond: input.point.speedMetersPerSecond ?? null,
+                latitude: input.point.latitude,
+                longitude: input.point.longitude,
+                nextStatus,
+              },
+            };
+          }
+        }
+
+        console.log("[location-events] transaction timing ms:", {
+          childId: input.childId,
+          deviceId: null,
+          parseMs: roundDuration(parseCompletedAt - requestStartedAt),
+          childLookupMs: roundDuration(childLookupCompletedAt - transactionStartedAt),
+          zoneQueryMs: roundDuration(zoneQueryCompletedAt - childLookupCompletedAt),
+          locationInsertMs: roundDuration(locationInsertCompletedAt - zoneQueryCompletedAt),
+          childSnapshotMs: roundDuration(childSnapshotCompletedAt - locationInsertCompletedAt),
+          childEventsMs: roundDuration(performance.now() - childSnapshotCompletedAt),
+          transactionTotalMs: roundDuration(performance.now() - transactionStartedAt),
+        });
       }
 
-      console.log("[location-events] transaction completed in:", roundDuration(performance.now() - transactionStartedAt), "ms");
-
       return {
-        result: {
-          eventId: event.id,
-          childId: input.childId,
-          deviceId: input.deviceId ?? null,
-          snapshotUpdated: shouldRefreshChildReadModel,
-          snapshotReason: snapshotDecision.reason,
-          urgentUpdate,
-          nextStatus,
-          currentZoneLabel: zoneMatch?.label ?? null,
-          recordedAt: recordedAt.toISOString(),
-          createdAt: event.createdAt.toISOString(),
-        },
-        pendingAlert: alert,
+        eventId: event.id,
+        childId: input.childId,
+        deviceId: input.deviceId ?? null,
+        snapshotUpdated: shouldRefreshChildReadModel,
+        snapshotReason: snapshotDecision.reason,
+        urgentUpdate,
+        nextStatus,
+        currentZoneLabel: zoneMatch?.label ?? null,
+        recordedAt: recordedAt.toISOString(),
+        createdAt: event.createdAt.toISOString(),
       };
     });
 
@@ -403,10 +483,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function roundDuration(ms: number) {
-  return Math.round(ms * 100) / 100;
+function roundDuration(value: number) {
+  return Number(value.toFixed(1));
 }
-
 
 function normalizeLocationEventRequest(body: unknown) {
   if (typeof body !== "object" || body === null) {
@@ -681,6 +760,58 @@ function determineCurrentZone(
   return containingZones[0] ?? null;
 }
 
+function logZoneEvaluation({
+  childId,
+  latitude,
+  longitude,
+  zones,
+  zoneMatch,
+}: {
+  childId: string;
+  latitude: number;
+  longitude: number;
+  zones: ZoneCandidate[];
+  zoneMatch:
+    | (ZoneCandidate & {
+        distanceMeters: number;
+      })
+    | null;
+}) {
+  const zoneDistances = zones.map((zone) => {
+    const distanceMeters = calculateDistanceMeters(
+      zone.centerLatitude,
+      zone.centerLongitude,
+      latitude,
+      longitude,
+    );
+
+    return {
+      id: zone.id,
+      label: zone.label,
+      severity: zone.severity,
+      radiusMeters: zone.radiusMeters,
+      distanceMeters: Number(distanceMeters.toFixed(2)),
+      inside: distanceMeters <= zone.radiusMeters,
+    };
+  });
+
+  console.log("[zones] evaluated location against active zones:", {
+    childId,
+    point: {
+      latitude,
+      longitude,
+    },
+    zoneDistances,
+    selectedZone: zoneMatch
+      ? {
+          id: zoneMatch.id,
+          label: zoneMatch.label,
+          severity: zoneMatch.severity,
+          distanceMeters: Number(zoneMatch.distanceMeters.toFixed(2)),
+        }
+      : null,
+  });
+}
 
 function getZoneSeverityRank(severity: "safe" | "caution" | "danger") {
   switch (severity) {
