@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getAuthenticatedParent } from "@/lib/auth/get-authenticated-parent";
-import { redis } from "@/lib/redis";
+import { getRedis } from "@/lib/redis";
 
 const PAIRING_CODE_TTL_MINUTES = 10;
 const MAX_CODE_GENERATION_ATTEMPTS = 5;
@@ -30,6 +30,7 @@ function getExpiresAt(): Date {
 
 export async function POST(request: NextRequest) {
   try {
+    const redis = getRedis();
     const authenticatedParent = await getAuthenticatedParent(request);
     const parentId = authenticatedParent.parent.id;
     const body = await request.json();

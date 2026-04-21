@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { verifyPairingCodeInputSchema } from "@guardiansense/types";
-import { redis } from "@/lib/redis";
+import { getRedis } from "@/lib/redis";
 
 type PairingCodePayload = {
   parentId: string;
@@ -29,6 +29,7 @@ class RouteError extends Error {
 
 export async function POST(request: NextRequest) {
   let verificationLockKey: string | null = null;
+  const redis = getRedis();
 
   try {
     console.log("[pairing-verify] request received");

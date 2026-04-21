@@ -3,7 +3,7 @@ import { and, desc, eq, gte } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 import { getAuthenticatedParentFromSession } from "@/lib/auth/get-authenticated-parent-from-session";
-import { redis } from "@/lib/redis";
+import { getRedis } from "@/lib/redis";
 
 type RouteContext = {
   params: Promise<{
@@ -18,6 +18,7 @@ const CACHE_TTL_SECONDS = 60;
 
 export async function GET(request: NextRequest, context: RouteContext) {
   const authenticatedParent = await getAuthenticatedParentFromSession();
+  const redis = getRedis();
 
   if (!authenticatedParent) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
