@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export default function Home() {
   const childAppDownloadUrl =
     process.env.NEXT_PUBLIC_CHILD_APP_DOWNLOAD_URL ??
-    "https://expo.dev/accounts/fzzm05/projects/guardiansense/builds/19696dd5-2e6c-46f2-94ec-65eb2153db00";
+    "https://expo.dev/accounts/fzzm05/projects/guardiansense/builds/0722524c-6bd2-4c18-9ad1-2fa3bd3383f5";
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
