@@ -10,11 +10,17 @@
     },
     "preview": {
       "distribution": "internal",
+      "android": {
+        "image": "latest"
+      },
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://guardian-sense-v1-web.vercel.app"
       }
     },
     "production": {
+      "android": {
+        "image": "latest"
+      },
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://guardian-sense-v1-web.vercel.app"
       }

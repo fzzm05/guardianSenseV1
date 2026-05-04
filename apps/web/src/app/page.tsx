@@ -7,6 +7,10 @@ import { SiteFooter } from "@/components/site-footer";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Home() {
+  const childAppDownloadUrl =
+    process.env.NEXT_PUBLIC_CHILD_APP_DOWNLOAD_URL ??
+    "https://expo.dev/accounts/fzzm05/projects/guardiansense/builds/19696dd5-2e6c-46f2-94ec-65eb2153db00";
+
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
 
@@ -71,7 +75,7 @@ export default function Home() {
             </svg>
           </a>
           <a
-            href="https://expo.dev/accounts/fzzm05/projects/guardiansense/builds/19696dd5-2e6c-46f2-94ec-65eb2153db00"
+            href={childAppDownloadUrl}
             className="inline-flex items-center gap-2 rounded-lg border border-neutral-200/80 bg-white px-5 py-2.5 text-[14px] font-medium text-neutral-600 shadow-sm transition hover:border-neutral-300 hover:text-neutral-900 dark:border-white/[0.08] dark:bg-neutral-900 dark:text-neutral-300"
           >
             <Download size={16}/> Download child app
@@ -245,7 +249,7 @@ export default function Home() {
 
               {/* Google Play button */}
               <a
-                href="https://expo.dev/accounts/fzzm05/projects/guardiansense/builds/19696dd5-2e6c-46f2-94ec-65eb2153db00"
+                href={childAppDownloadUrl}
                 className="inline-flex w-fit items-center gap-3 rounded-xl border border-neutral-200/80 bg-neutral-50 px-4 py-3 transition hover:border-neutral-300 hover:bg-neutral-100 dark:border-white/[0.08] dark:bg-neutral-800 dark:hover:bg-neutral-700"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg text-white">

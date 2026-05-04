@@ -31,6 +31,18 @@ This project uses **Expo Application Services (EAS)** for professional-grade bui
 - **`preview`**: Generates an installable APK (Android) or IPA (iOS) for internal testing.
 - **`production`**: Optimized for final App Store and Google Play submissions.
 
+### GitHub-triggered builds
+This repository is already connected to GitHub at `https://github.com/fzzm05/guardianSenseV1.git`.
+
+To let Expo rebuild from GitHub pushes:
+
+1. In Expo, open your project settings for `guardiansense`.
+2. Connect your GitHub account to Expo if it is not linked yet.
+3. Connect the repository `fzzm05/guardianSenseV1` to the Expo project.
+4. Set the repository root directory to `apps/child` because this is a monorepo and the mobile app's `eas.json` lives there.
+5. Keep the workflow file at `apps/child/.eas/workflows/create-android-preview-build.yml`.
+6. Push changes to `master` to trigger a new Android preview build automatically.
+
 ### Triggering a Build
 ```bash
 # Preview build for testing
@@ -39,6 +51,8 @@ eas build --profile preview --platform android
 # Production build for stores
 eas build --profile production --platform all
 ```
+
+After the build finishes, copy the new Expo build URL and set `NEXT_PUBLIC_CHILD_APP_DOWNLOAD_URL` in the web app deployment so the website points to the newest APK page instead of an expired artifact.
 
 ---
 

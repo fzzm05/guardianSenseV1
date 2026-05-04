@@ -34,6 +34,7 @@ Leverages **Supabase Realtime (Postgres CDC)** to push location updates directly
 |---|---|---|
 | `DATABASE_URL` | PostgreSQL (Supabase) | Server |
 | `NEXT_PUBLIC_SUPABASE_URL` | Client Integration | Both |
+| `NEXT_PUBLIC_CHILD_APP_DOWNLOAD_URL` | Public landing-page download link for the latest Expo build | Client |
 | `FIREBASE_*` | Admin SDK Auth | Server |
 | `UPSTASH_REDIS_*` | Rate Limiting | Server |
 | `TELEGRAM_BOT_TOKEN` | Alerts Logic | Server |
